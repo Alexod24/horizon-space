@@ -6,7 +6,7 @@ import { formatDate, formatShortDay } from "@/lib/scene";
 import { DEFAULT_VEHICLE, VEHICLES } from "@/lib/vehicles";
 import { TRANSIT_PROFILES, useMissionStore } from "@/store/useMissionStore";
 
-const DELAYS = [24, 48, 72];
+const DELAYS = [0, 24, 48, 72];
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
 
@@ -36,6 +36,7 @@ export default function MissionSetupPanel() {
   const setDelay = useMissionStore((s) => s.setDelay);
   const setLandingSite = useMissionStore((s) => s.setLandingSite);
   const setVehicle = useMissionStore((s) => s.setVehicle);
+  const setCompare = useMissionStore((s) => s.setCompare);
   const setMissionStarted = useMissionStore((s) => s.setMissionStarted);
   const setPlaying = useMissionStore((s) => s.setPlaying);
 
@@ -52,12 +53,14 @@ export default function MissionSetupPanel() {
   const delayedTouchdownMs = nominalTouchdownMs + delayMs;
 
   const suggestCrisis = () => {
+    const activeDelayH = delayHours === 0 ? 48 : delayHours;
+    if (delayHours === 0) setDelay(48);
     const minTouchdownIdx = Math.ceil(transitMs / stepMs);
     const currentTouchdownIdx = Math.max(
       minTouchdownIdx,
       indexAt(data.timeline, nominalTouchdownMs) + 1,
     );
-    const delaySteps = Math.round(delayMs / stepMs);
+    const delaySteps = Math.round((activeDelayH * HOUR_MS) / stepMs);
     let hit = findNextCrisis(data.vis, currentTouchdownIdx, delaySteps);
     if (hit < 0) hit = findNextCrisis(data.vis, minTouchdownIdx, delaySteps);
     if (hit >= 0) setTime(t0Ms + hit * stepMs - transitMs);
@@ -257,7 +260,7 @@ export default function MissionSetupPanel() {
           <div className="text-[10px] font-semibold tracking-[0.12em] text-neutral-300">
             {en ? "4. DELAY TO SIMULATE" : "4. RETRASO A SIMULAR"}
           </div>
-          <div className="mt-2 grid grid-cols-3 gap-1.5">
+          <div className="mt-2 grid grid-cols-4 gap-1.5">
             {DELAYS.map((d) => (
               <button
                 key={d}
@@ -268,7 +271,7 @@ export default function MissionSetupPanel() {
                   : "border-neutral-800 bg-[#111111] text-neutral-400 hover:border-neutral-600 hover:text-neutral-200"
                   }`}
               >
-                +{d}H
+                {d === 0 ? "0H" : `+${d}H`}
               </button>
             ))}
           </div>
@@ -281,6 +284,7 @@ export default function MissionSetupPanel() {
       <button
         type="button"
         onClick={() => {
+          setCompare(delayHours > 0);
           setPlaying(true);
           setMissionStarted(true);
         }}

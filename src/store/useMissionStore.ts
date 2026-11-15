@@ -91,6 +91,10 @@ interface MissionState {
   playing: boolean;
   /** Simulated hours per real second. */
   speed: number;
+  /** True when the 7-day guaranteed window playback just finished and paused. */
+  sevenDayAlertOpen: boolean;
+  /** True if the user chose to continue playing past the 7-day window. */
+  allowBeyond7Days: boolean;
   /** Distance (km) if user clicked outside the 15 km South Pole landing zone. */
   outOfBoundsKm: number | null;
   setData: (d: MissionData, startMs: number) => void;
@@ -114,6 +118,8 @@ interface MissionState {
   setVehicle: (id: string) => void;
   setPlaying: (p: boolean) => void;
   setSpeed: (s: number) => void;
+  setSevenDayAlertOpen: (v: boolean) => void;
+  setAllowBeyond7Days: (v: boolean) => void;
   setOutOfBoundsKm: (km: number | null) => void;
 }
 
@@ -125,7 +131,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   timeMs: 0,
   plannedLaunchMs: 0,
   transitDays: 7,
-  delayHours: 48,
+  delayHours: 0,
   compare: true,
   terrainMode: "realistic",
   terrainBrightness: 1,
@@ -140,6 +146,8 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   landingSite: { x: 0, y: 0, elevationM: 0 },
   playing: false,
   speed: 6,
+  sevenDayAlertOpen: false,
+  allowBeyond7Days: false,
   outOfBoundsKm: null,
   setData: (data, startMs) => {
     const h0 = sampleHeight(data.terrain, 0, 0);
@@ -154,11 +162,13 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   setError: (error) => set({ status: "error", error }),
   setTime: (timeMs, anchor = true) =>
     set((s) => {
-      if (!s.data) return anchor ? { timeMs, plannedLaunchMs: timeMs } : { timeMs };
+      if (!s.data) return anchor ? { timeMs, plannedLaunchMs: timeMs, sevenDayAlertOpen: false, allowBeyond7Days: false } : { timeMs };
       const { t0Ms, t1Ms } = s.data.timeline;
       const maxLaunchMs = t1Ms - s.transitDays * DAY_MS - s.delayHours * HOUR_MS;
       const clamped = Math.min(Math.max(timeMs, t0Ms), maxLaunchMs);
-      return anchor ? { timeMs: clamped, plannedLaunchMs: clamped } : { timeMs: clamped };
+      return anchor
+        ? { timeMs: clamped, plannedLaunchMs: clamped, sevenDayAlertOpen: false, allowBeyond7Days: false }
+        : { timeMs: clamped };
     }),
   setTransitDays: (transitDays) =>
     set((s) => {
@@ -228,5 +238,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   },
   setPlaying: (playing) => set({ playing }),
   setSpeed: (speed) => set({ speed }),
+  setSevenDayAlertOpen: (sevenDayAlertOpen) => set({ sevenDayAlertOpen }),
+  setAllowBeyond7Days: (allowBeyond7Days) => set({ allowBeyond7Days }),
   setOutOfBoundsKm: (outOfBoundsKm) => set({ outOfBoundsKm }),
 }));

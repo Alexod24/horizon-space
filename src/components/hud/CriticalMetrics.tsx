@@ -28,7 +28,13 @@ function ProgressBar({ pct, color }: { pct: number; color: string }) {
 }
 
 /** Compact card shown below each 3D viewport in Compare mode. */
-export function CompactMetricsCard({ offsetHours }: { offsetHours: number }) {
+export function CompactMetricsCard({
+  offsetHours,
+  stacked = false,
+}: {
+  offsetHours: number;
+  stacked?: boolean;
+}) {
   const sc = useScenario(offsetHours);
   const lang = useMissionStore((s) => s.lang);
   const advancedHud = useMissionStore((s) => s.advancedHud);
@@ -84,7 +90,7 @@ export function CompactMetricsCard({ offsetHours }: { offsetHours: number }) {
         </div>
 
         {/* Two Visual Boxes: Real Sun Image + Check & Real Earth Image + Check */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className={stacked ? "grid grid-cols-1 gap-2" : "grid grid-cols-1 gap-2 sm:grid-cols-2"}>
           {/* Sun Box */}
           <div
             className={`flex items-center justify-between gap-2 rounded-md border p-2 ${
@@ -229,7 +235,7 @@ export function DetailedMetricsCards({ offsetHours }: { offsetHours: number }) {
   if (!sc) return null;
 
   if (!advancedHud) {
-    return <CompactMetricsCard offsetHours={offsetHours} />;
+    return <CompactMetricsCard offsetHours={offsetHours} stacked />;
   }
 
   const sunPct = sc.sunWindow.visible

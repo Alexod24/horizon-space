@@ -394,7 +394,7 @@ export default function Home() {
                 }
                 coords={coords}
                 offsetHours={0}
-                ghostOffsetHours={delayHours}
+                ghostOffsetHours={delayHours > 0 ? delayHours : undefined}
                 terrainSource={data.terrainSource}
               />
             )}

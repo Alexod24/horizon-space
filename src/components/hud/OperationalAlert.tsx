@@ -9,51 +9,62 @@ import { useMissionStore } from "@/store/useMissionStore";
 
 export function ViabilityVerdictCard() {
   const data = useMissionStore((s) => s.data);
+  const timeMs = useMissionStore((s) => s.timeMs);
   const plannedLaunchMs = useMissionStore((s) => s.plannedLaunchMs);
+  const missionStarted = useMissionStore((s) => s.missionStarted);
   const transitDays = useMissionStore((s) => s.transitDays);
   const delayHours = useMissionStore((s) => s.delayHours);
   const vehicleId = useMissionStore((s) => s.vehicleId);
   const lang = useMissionStore((s) => s.lang);
   const setTime = useMissionStore((s) => s.setTime);
+  const setPlaying = useMissionStore((s) => s.setPlaying);
   const en = lang === "en";
   const veh = findVehicle(vehicleId);
+  const nominal = useScenario(0);
+  const crisis = useScenario(delayHours);
+
+  const evalLaunchMs =
+    missionStarted &&
+    (timeMs > plannedLaunchMs + 7 * 86_400_000 || Boolean(nominal?.occ.any || crisis?.occ.any))
+      ? timeMs
+      : plannedLaunchMs;
 
   const viability = useMemo(() => {
     if (!data) return null;
     return calculateMissionViability(
       data.timeline,
       data.vis,
-      plannedLaunchMs,
+      evalLaunchMs,
       transitDays,
       delayHours,
       veh.maxDarkHours,
       7,
     );
-  }, [data, plannedLaunchMs, transitDays, delayHours, veh.maxDarkHours]);
+  }, [data, evalLaunchMs, transitDays, delayHours, veh.maxDarkHours]);
 
   if (!viability) return null;
 
   const tierBadge =
     viability.tier === "OPTIMAL"
       ? {
-          label: en ? "OPTIMAL" : "ÓPTIMO",
-          color: "border-emerald-500/50 bg-emerald-950/40 text-emerald-300",
-          scoreColor: "text-emerald-400",
-          barColor: "#3ee08f",
-        }
+        label: en ? "OPTIMAL" : "ÓPTIMO",
+        color: "border-emerald-500/50 bg-emerald-950/40 text-emerald-300",
+        scoreColor: "text-emerald-400",
+        barColor: "#3ee08f",
+      }
       : viability.tier === "MARGINAL"
         ? {
-            label: "MARGINAL",
-            color: "border-amber-500/50 bg-amber-950/40 text-amber-300",
-            scoreColor: "text-amber-300",
-            barColor: "#fbbf24",
-          }
+          label: "MARGINAL",
+          color: "border-amber-500/50 bg-amber-950/40 text-amber-300",
+          scoreColor: "text-amber-300",
+          barColor: "#fbbf24",
+        }
         : {
-            label: en ? "CRITICAL" : "CRÍTICO",
-            color: "border-rose-500/60 bg-rose-950/40 text-rose-300",
-            scoreColor: "text-rose-400",
-            barColor: "#ff3b4e",
-          };
+          label: en ? "CRITICAL" : "CRÍTICO",
+          color: "border-rose-500/60 bg-rose-950/40 text-rose-300",
+          scoreColor: "text-rose-400",
+          barColor: "#ff3b4e",
+        };
 
   const solarDetail =
     viability.solarPct >= 99.5
@@ -153,13 +164,12 @@ export function ViabilityVerdictCard() {
             {en ? `Delay (+${delayHours}h):` : `Resiliencia (+${delayHours}h):`}
           </span>
           <span
-            className={`text-right font-mono text-[10px] font-semibold ${
-              viability.delayThermalFreeze
-                ? "text-rose-400"
-                : viability.delayOccluded
-                  ? "text-amber-300"
-                  : "text-emerald-400"
-            }`}
+            className={`text-right font-mono text-[10px] font-semibold ${viability.delayThermalFreeze
+              ? "text-rose-400"
+              : viability.delayOccluded
+                ? "text-amber-300"
+                : "text-emerald-400"
+              }`}
           >
             {resilienceDetail}
           </span>
@@ -169,7 +179,7 @@ export function ViabilityVerdictCard() {
       {/* 7-Day Guaranteed Window Explanation */}
       <div className="mt-2.5 rounded border border-neutral-800 bg-[#121212] px-2.5 py-2 text-[10px] leading-relaxed text-neutral-400">
         <strong className="text-neutral-200">
-          {en ? "⏳ 7 Guaranteed Days (168 h): " : "⏳ 7 días asegurados (168 h): "}
+          {en ? "7 Guaranteed Days (168 h): " : "7 días asegurados (168 h): "}
         </strong>
         {en
           ? "This score guarantees solar light and Earth link during the first week after touchdown. Beyond 7 days, the ~29.5-day lunar cycle hides the Sun behind the crater rim and lunar night begins."
@@ -180,7 +190,7 @@ export function ViabilityVerdictCard() {
       {opt && (
         <div className="mt-2.5 rounded border border-neutral-700 bg-[#111111] p-2.5">
           <div className="text-[9px] font-bold tracking-[0.12em] text-amber-300">
-            {en ? "💡 SYSTEM RECOMMENDATION" : "💡 RECOMENDACIÓN DEL SISTEMA"}
+            {en ? "SYSTEM RECOMMENDATION" : "RECOMENDACIÓN DEL SISTEMA"}
           </div>
           <p className="mt-1 text-[10px] leading-relaxed text-neutral-300">
             {en ? (
@@ -207,7 +217,10 @@ export function ViabilityVerdictCard() {
           </p>
           <button
             type="button"
-            onClick={() => setTime(opt.launchMs)}
+            onClick={() => {
+              setTime(opt.launchMs, true);
+              if (missionStarted) setPlaying(true);
+            }}
             className="mt-2 w-full rounded border border-emerald-500/60 bg-emerald-950/50 px-2 py-1.5 font-mono text-[10px] font-semibold text-emerald-300 transition hover:border-emerald-400 hover:bg-emerald-900/60 hover:text-white"
           >
             {en
@@ -222,7 +235,9 @@ export function ViabilityVerdictCard() {
 
 export default function OperationalAlert() {
   const data = useMissionStore((s) => s.data);
+  const timeMs = useMissionStore((s) => s.timeMs);
   const plannedLaunchMs = useMissionStore((s) => s.plannedLaunchMs);
+  const missionStarted = useMissionStore((s) => s.missionStarted);
   const transitDays = useMissionStore((s) => s.transitDays);
   const delayHours = useMissionStore((s) => s.delayHours);
   const vehicleId = useMissionStore((s) => s.vehicleId);
@@ -230,23 +245,30 @@ export default function OperationalAlert() {
   const advancedHud = useMissionStore((s) => s.advancedHud);
   const setAdvancedHud = useMissionStore((s) => s.setAdvancedHud);
   const setTime = useMissionStore((s) => s.setTime);
+  const setPlaying = useMissionStore((s) => s.setPlaying);
   const en = lang === "en";
   const veh = findVehicle(vehicleId);
   const nominal = useScenario(0);
   const crisis = useScenario(delayHours);
+
+  const evalLaunchMs =
+    missionStarted &&
+    (timeMs > plannedLaunchMs + 7 * 86_400_000 || Boolean(nominal?.occ.any || crisis?.occ.any))
+      ? timeMs
+      : plannedLaunchMs;
 
   const viability = useMemo(() => {
     if (!data) return null;
     return calculateMissionViability(
       data.timeline,
       data.vis,
-      plannedLaunchMs,
+      evalLaunchMs,
       transitDays,
       delayHours,
       veh.maxDarkHours,
       7,
     );
-  }, [data, plannedLaunchMs, transitDays, delayHours, veh.maxDarkHours]);
+  }, [data, evalLaunchMs, transitDays, delayHours, veh.maxDarkHours]);
 
   if (!nominal || !crisis) return null;
 
@@ -267,36 +289,41 @@ export default function OperationalAlert() {
     const simpleStatus =
       nominalOk && crisisOk
         ? {
-            icon: "✓",
-            badgeClass: "border-emerald-500/60 bg-emerald-950/60 text-emerald-400",
-            boxClass: "border-emerald-500/40 bg-emerald-950/20",
-            titleColor: "text-emerald-400",
-            title: en ? "Mission Viable" : "Misión Viable",
-            subtitle: en
-              ? `Safe landing even with a +${delayHours}h delay.`
-              : `Aterrizaje seguro incluso si el cohete se retrasa +${delayHours}h.`,
-          }
+          icon: "✓",
+          badgeClass: "border-emerald-500/60 bg-emerald-950/60 text-emerald-400",
+          boxClass: "border-emerald-500/40 bg-emerald-950/20",
+          titleColor: "text-emerald-400",
+          title: en ? "Mission Viable" : "Misión Viable",
+          subtitle:
+            delayHours > 0
+              ? en
+                ? `Safe landing even with a +${delayHours}h delay.`
+                : `Aterrizaje seguro incluso si el cohete se retrasa +${delayHours}h.`
+              : en
+                ? "Safe landing with continuous sunlight and Earth signal."
+                : "Aterrizaje seguro con luz solar y contacto directo con la Tierra.",
+        }
         : nominalOk && !crisisOk
           ? {
-              icon: "⚠",
-              badgeClass: "border-amber-500/60 bg-amber-950/60 text-amber-300",
-              boxClass: "border-rose-500/50 bg-rose-950/25",
-              titleColor: "text-amber-300",
-              title: en ? `Risk on +${delayHours}h Delay` : `Riesgo si se retrasa +${delayHours}h`,
-              subtitle: en
-                ? "On-time landing is safe, but a delay leaves the lander without sun or signal."
-                : "A tiempo es seguro, pero un retraso deja la nave sin luz solar o sin señal.",
-            }
+            icon: "⚠",
+            badgeClass: "border-amber-500/60 bg-amber-950/60 text-amber-300",
+            boxClass: "border-rose-500/50 bg-rose-950/25",
+            titleColor: "text-amber-300",
+            title: en ? `Risk on +${delayHours}h Delay` : `Riesgo si se retrasa +${delayHours}h`,
+            subtitle: en
+              ? "On-time landing is safe, but a delay leaves the lander without sun or signal."
+              : "A tiempo es seguro, pero un retraso deja la nave sin luz solar o sin señal.",
+          }
           : {
-              icon: "✕",
-              badgeClass: "border-rose-500/60 bg-rose-950/60 text-rose-400",
-              boxClass: "border-rose-500/50 bg-rose-950/25",
-              titleColor: "text-rose-400",
-              title: en ? "Not Viable" : "No Viable",
-              subtitle: en
-                ? "Landing site is blocked by crater shadows or has no Earth contact."
-                : "El sitio está en sombra o sin contacto con la Tierra en esta fecha.",
-            };
+            icon: "✕",
+            badgeClass: "border-rose-500/60 bg-rose-950/60 text-rose-400",
+            boxClass: "border-rose-500/50 bg-rose-950/25",
+            titleColor: "text-rose-400",
+            title: en ? "Not Viable" : "No Viable",
+            subtitle: en
+              ? "Landing site is blocked by crater shadows or has no Earth contact."
+              : "El sitio está en sombra o sin contacto con la Tierra en esta fecha.",
+          };
 
     const opt = viability?.optimal;
 
@@ -333,21 +360,23 @@ export default function OperationalAlert() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-neutral-800 pt-2 text-[11px]">
-              <span className="font-medium text-neutral-300">
-                {en ? `Delayed (+${delayHours}h)` : `Con retraso (+${delayHours}h)`}
-              </span>
-              <div className="flex items-center gap-2.5 font-mono text-[11px] font-bold">
-                <span className={`inline-flex items-center gap-1 ${criSunOk ? "text-emerald-400" : "text-rose-400"}`}>
-                  <img src="/sun.jpg" alt="Sol" className="h-4 w-4 rounded-full object-cover" />
-                  {criSunOk ? "✓" : "✕"}
+            {delayHours > 0 && (
+              <div className="flex items-center justify-between border-t border-neutral-800 pt-2 text-[11px]">
+                <span className="font-medium text-neutral-300">
+                  {en ? `Delayed (+${delayHours}h)` : `Con retraso (+${delayHours}h)`}
                 </span>
-                <span className={`inline-flex items-center gap-1 ${criEarthOk ? "text-emerald-400" : "text-rose-400"}`}>
-                  <img src="/earth.jpg" alt="Tierra" className="h-4 w-4 rounded-full object-cover" />
-                  {criEarthOk ? "✓" : "✕"}
-                </span>
+                <div className="flex items-center gap-2.5 font-mono text-[11px] font-bold">
+                  <span className={`inline-flex items-center gap-1 ${criSunOk ? "text-emerald-400" : "text-rose-400"}`}>
+                    <img src="/sun.jpg" alt="Sol" className="h-4 w-4 rounded-full object-cover" />
+                    {criSunOk ? "✓" : "✕"}
+                  </span>
+                  <span className={`inline-flex items-center gap-1 ${criEarthOk ? "text-emerald-400" : "text-rose-400"}`}>
+                    <img src="/earth.jpg" alt="Tierra" className="h-4 w-4 rounded-full object-cover" />
+                    {criEarthOk ? "✓" : "✕"}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="mt-2.5 rounded border border-neutral-800/80 bg-[#121212]/80 px-2.5 py-1.5 text-[10px] leading-snug text-neutral-400">
@@ -360,7 +389,10 @@ export default function OperationalAlert() {
           {opt && !(nominalOk && crisisOk) && (
             <button
               type="button"
-              onClick={() => setTime(opt.launchMs)}
+              onClick={() => {
+                setTime(opt.launchMs, true);
+                if (missionStarted) setPlaying(true);
+              }}
               className="mt-2.5 w-full rounded border border-emerald-500/60 bg-emerald-950/60 px-2.5 py-2 text-[11px] font-semibold text-emerald-300 transition hover:border-emerald-400 hover:bg-emerald-900/70 hover:text-white"
             >
               {en

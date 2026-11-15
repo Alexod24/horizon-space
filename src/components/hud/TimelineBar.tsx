@@ -39,14 +39,19 @@ export default function TimelineBar() {
   const playing = useMissionStore((s) => s.playing);
   const speed = useMissionStore((s) => s.speed);
   const advancedHud = useMissionStore((s) => s.advancedHud);
+  const sevenDayAlertOpen = useMissionStore((s) => s.sevenDayAlertOpen);
+  const allowBeyond7Days = useMissionStore((s) => s.allowBeyond7Days);
   const setTime = useMissionStore((s) => s.setTime);
   const setTransitDays = useMissionStore((s) => s.setTransitDays);
+  const setDelay = useMissionStore((s) => s.setDelay);
   const setCompare = useMissionStore((s) => s.setCompare);
   const setTerrainMode = useMissionStore((s) => s.setTerrainMode);
   const setIsolatePole = useMissionStore((s) => s.setIsolatePole);
   const setPlaying = useMissionStore((s) => s.setPlaying);
   const setSpeed = useMissionStore((s) => s.setSpeed);
   const setAdvancedHud = useMissionStore((s) => s.setAdvancedHud);
+  const setSevenDayAlertOpen = useMissionStore((s) => s.setSevenDayAlertOpen);
+  const setAllowBeyond7Days = useMissionStore((s) => s.setAllowBeyond7Days);
 
   useEffect(() => {
     if (!playing || !data) return;
@@ -59,8 +64,14 @@ export default function TimelineBar() {
       const maxMs = st.data.timeline.t1Ms - st.transitDays * DAY_MS - st.delayHours * HOUR_MS;
       const missionEndMs = Math.min(st.plannedLaunchMs + MISSION_DAYS * DAY_MS, maxMs);
       const next = st.timeMs + dt * st.speed * HOUR_MS;
-      if (next >= missionEndMs) {
+      if (!st.allowBeyond7Days && next >= missionEndMs) {
         setTime(missionEndMs, false);
+        setPlaying(false);
+        setSevenDayAlertOpen(true);
+        return;
+      }
+      if (next >= maxMs) {
+        setTime(maxMs, false);
         setPlaying(false);
         return;
       }
@@ -68,7 +79,7 @@ export default function TimelineBar() {
       raf = requestAnimationFrame(step);
     });
     return () => cancelAnimationFrame(raf);
-  }, [playing, data, setTime, setPlaying]);
+  }, [playing, data, setTime, setPlaying, setSevenDayAlertOpen]);
 
   if (!data) return null;
 
@@ -86,8 +97,12 @@ export default function TimelineBar() {
   const togglePlay = () => {
     if (!playing) {
       const missionEndMs = Math.min(plannedLaunchMs + MISSION_DAYS * DAY_MS, maxMs);
-      if (timeMs >= missionEndMs - stepMs || timeMs < plannedLaunchMs) {
+      if (timeMs >= missionEndMs - stepMs && !allowBeyond7Days) {
+        setAllowBeyond7Days(true);
+        setSevenDayAlertOpen(false);
+      } else if (timeMs < plannedLaunchMs || timeMs >= maxMs - stepMs) {
         setTime(plannedLaunchMs, false);
+        setAllowBeyond7Days(false);
       }
       setPlaying(true);
     } else {
@@ -96,19 +111,25 @@ export default function TimelineBar() {
   };
 
   const jumpToNextCrisis = () => {
+    const activeDelayH = delayHours === 0 ? 48 : delayHours;
+    if (delayHours === 0) {
+      setDelay(48);
+      setCompare(true);
+    }
     const minTouchdownIdx = Math.ceil(transitMs / stepMs);
     const currentTouchdownIdx = Math.max(
       minTouchdownIdx,
       indexAt(data.timeline, touchdownMs) + 1,
     );
-    const delaySteps = Math.round(delayMs / stepMs);
+    const delaySteps = Math.round((activeDelayH * HOUR_MS) / stepMs);
     let hit = findNextCrisis(data.vis, currentTouchdownIdx, delaySteps);
     if (hit < 0) hit = findNextCrisis(data.vis, minTouchdownIdx, delaySteps);
     if (hit >= 0) setTime(data.timeline.t0Ms + hit * stepMs - transitMs);
   };
 
   return (
-    <div className="z-20 flex shrink-0 flex-wrap items-center gap-3 border-b border-neutral-800 bg-[#161616] px-4 py-2 text-xs">
+    <div className="z-20 shrink-0">
+      <div className="flex flex-wrap items-center gap-3 border-b border-neutral-800 bg-[#161616] px-4 py-2 text-xs">
       {/* Play + Speed */}
       <div className="flex items-center gap-1.5">
         <button
@@ -219,15 +240,17 @@ export default function TimelineBar() {
             style={{ ["--pct" as string]: `${pct}%` }}
           />
           {/* +48h crisis marker */}
-          <div
-            className="pointer-events-none absolute top-1/2 z-20 -translate-x-1/2 -translate-y-1/2"
-            style={{ left: `${delayPct}%` }}
-          >
-            <div className="h-3 w-3 rounded-full border-2 border-[#ff9a3c] bg-[#161616]" />
-            <span className="absolute left-1/2 top-4 -translate-x-1/2 whitespace-nowrap rounded border border-neutral-700 bg-neutral-900 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-neutral-200">
-              +{delayHours}H
-            </span>
-          </div>
+          {delayHours > 0 && (
+            <div
+              className="pointer-events-none absolute top-1/2 z-20 -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${delayPct}%` }}
+            >
+              <div className="h-3 w-3 rounded-full border-2 border-[#ff9a3c] bg-[#161616]" />
+              <span className="absolute left-1/2 top-4 -translate-x-1/2 whitespace-nowrap rounded border border-neutral-700 bg-neutral-900 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-neutral-200">
+                +{delayHours}H
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -282,7 +305,11 @@ export default function TimelineBar() {
             type="button"
             role="switch"
             aria-checked={compare}
-            onClick={() => setCompare(!compare)}
+            onClick={() => {
+              const nextCompare = !compare;
+              if (nextCompare && delayHours === 0) setDelay(48);
+              setCompare(nextCompare);
+            }}
             className={`relative h-5 w-9 rounded-full border transition ${compare ? "border-white bg-white" : "border-neutral-700 bg-neutral-900"
               }`}
           >
@@ -305,6 +332,64 @@ export default function TimelineBar() {
           ⚙ {advancedHud ? (en ? "Simple View" : "Vista Simple") : (en ? "Advanced" : "Avanzado")}
         </button>
       </div>
+      </div>
+
+      {/* 7-Day Guaranteed Mission Completed Alert */}
+      {sevenDayAlertOpen && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-500/50 bg-amber-950/60 px-4 py-2.5 text-xs text-amber-200"
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-amber-400/60 bg-amber-950 font-bold text-amber-300">
+              ✓
+            </span>
+            <p className="text-[11px] leading-snug text-neutral-200">
+              <strong className="text-amber-300">
+                {en
+                  ? "7-day guaranteed mission completed: "
+                  : "¡Se cumplieron los 7 días asegurados de la misión! "}
+              </strong>
+              {en
+                ? "Simulation paused automatically after the first week on the Moon. Click the Play button (▶) if you want to keep watching into the lunar night."
+                : "La simulación se detuvo automáticamente porque ya se cumplieron los 7 días. Si deseas seguir viendo la simulación, dale clic al botón de Play (▶)."}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setAllowBeyond7Days(true);
+                setSevenDayAlertOpen(false);
+                setPlaying(true);
+              }}
+              className="rounded border border-emerald-500/60 bg-emerald-950/70 px-3 py-1 text-[11px] font-semibold text-emerald-300 transition hover:bg-emerald-900 hover:text-white"
+            >
+              ▶ {en ? "Continue Watching" : "Seguir viendo"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSevenDayAlertOpen(false);
+                setAllowBeyond7Days(false);
+                setTime(plannedLaunchMs, false);
+              }}
+              className="rounded border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] text-neutral-300 transition hover:border-neutral-500 hover:text-white"
+            >
+              ↺ {en ? "Restart 7d" : "Reiniciar 7d"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSevenDayAlertOpen(false)}
+              aria-label={en ? "Close alert" : "Cerrar alerta"}
+              className="px-1.5 text-neutral-400 hover:text-white"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

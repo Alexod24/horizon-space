@@ -7,15 +7,31 @@ export default function MissionHeader() {
   const terrainSource = useMissionStore((s) => s.data?.terrainSource);
   const missionStarted = useMissionStore((s) => s.missionStarted);
   const plannedLaunchMs = useMissionStore((s) => s.plannedLaunchMs);
+  const setEnteredApp = useMissionStore((s) => s.setEnteredApp);
   const setMissionStarted = useMissionStore((s) => s.setMissionStarted);
   const setPlaying = useMissionStore((s) => s.setPlaying);
   const setTime = useMissionStore((s) => s.setTime);
   const lang = useMissionStore((s) => s.lang);
   const en = lang === "en";
 
+  const goHome = () => {
+    setPlaying(false);
+    setMissionStarted(false);
+    setEnteredApp(false);
+  };
+
   return (
     <header className="z-20 flex h-11 shrink-0 items-center justify-between border-b border-neutral-800 bg-[#141414] px-4 text-xs">
       <div className="flex items-center gap-2.5">
+        <button
+          type="button"
+          onClick={goHome}
+          title={en ? "Back to Landing Page" : "Volver a la página de inicio"}
+          className="flex items-center gap-1 rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-[11px] font-medium text-neutral-200 transition hover:border-neutral-500 hover:bg-neutral-800"
+        >
+          <span>←</span>
+          <span>{en ? "Home" : "Inicio"}</span>
+        </button>
         <img
           src="/icon.jpg"
           alt="Horizon Space"

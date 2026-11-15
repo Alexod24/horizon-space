@@ -3,23 +3,6 @@
 import LangToggle from "@/components/hud/LangToggle";
 import { useMissionStore } from "@/store/useMissionStore";
 
-const HERO_PILLARS = [
-  {
-    img: "/sun.jpg",
-    titleEs: "Luz del Sol",
-    titleEn: "Sunlight",
-    descEs: "Energía y calor para que la nave no se congele",
-    descEn: "Power and warmth so the lander doesn't freeze",
-  },
-  {
-    img: "/earth.jpg",
-    titleEs: "Señal con la Tierra",
-    titleEn: "Earth Signal",
-    descEs: "Contacto directo sin montañas en medio",
-    descEn: "Direct contact without mountains in the way",
-  },
-];
-
 const STEPS = [
   {
     num: "01",
@@ -152,28 +135,6 @@ export default function LandingPage() {
                 ? "To survive on the Moon, a spacecraft needs two basic things: Sunlight for power and a clear view of Earth to communicate. Discover in 3D what happens when mountains get in the way."
                 : "Para sobrevivir en la Luna, una nave necesita dos cosas básicas: luz del Sol para tener energía y ver a la Tierra para comunicarse. Explora en 3D qué pasa cuando las montañas lunares se interponen."}
             </p>
-
-            {/* 2 Visual Pillars with Real Sun & Earth Images */}
-            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {HERO_PILLARS.map((p) => (
-                <div
-                  key={p.titleEs}
-                  className="flex items-center gap-3 rounded-md border border-white/15 bg-black/70 p-3 backdrop-blur-sm"
-                >
-                  <img
-                    src={p.img}
-                    alt={en ? p.titleEn : p.titleEs}
-                    className="h-10 w-10 shrink-0 rounded-full border border-white/20 object-cover"
-                  />
-                  <div>
-                    <div className="text-xs font-bold text-white">{en ? p.titleEn : p.titleEs}</div>
-                    <div className="text-[11px] leading-snug text-neutral-400">
-                      {en ? p.descEn : p.descEs}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
 
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <button

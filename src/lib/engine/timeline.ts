@@ -197,11 +197,11 @@ export function calculateMissionViability(
     firstSolarDropHours = 0;
   }
 
-  // Search +/- 30 days around current touchdown index for an optimal window
+  // Search forward (+35 days) from current touchdown index for the next optimal 7-day window
   const minIdx = Math.ceil(transitMs / tl.stepMs);
   const maxIdx = Math.max(minIdx, v.n - delaySteps - missionSteps - 1);
-  const searchRadiusSteps = Math.round((30 * DAY_MS) / tl.stepMs);
-  const lo = Math.max(minIdx, idx - Math.round((7 * DAY_MS) / tl.stepMs));
+  const searchRadiusSteps = Math.round((35 * DAY_MS) / tl.stepMs);
+  const lo = Math.min(maxIdx, Math.max(minIdx, idx + 4));
   const hi = Math.min(maxIdx, idx + searchRadiusSteps);
 
   let bestIdx = idx;
