@@ -80,7 +80,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   missionStarted: false,
   landingSite: { x: 0, y: 0, elevationM: 0 },
   playing: false,
-  speed: 6,
+  speed: 24,
   outOfBoundsKm: null,
   setData: (data, startMs) => {
     const h0 = sampleHeight(data.terrain, 0, 0);

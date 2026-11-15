@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentRef, useEffect, useMemo, useRef } from "react";
+import { type ComponentRef, useEffect, useId, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Billboard, Line, OrbitControls, Text } from "@react-three/drei";
 import * as THREE from "three";
@@ -14,6 +14,14 @@ import { findVehicle } from "@/lib/vehicles";
 import { useMissionStore } from "@/store/useMissionStore";
 
 const H = 3_600_000;
+
+interface CameraSyncMsg {
+  sourceId: string;
+  pos: [number, number, number];
+  target: [number, number, number];
+}
+const cameraSyncListeners = new Set<(msg: CameraSyncMsg) => void>();
+let lastSyncedCamera: CameraSyncMsg | null = null;
 
 // ─── Terrain ────────────────────────────────────────────────────────────────
 function buildTerrainGeometry(t: TerrainMatrix, minKm = 0, maxKm = TERRAIN_RADIUS, rings = 110, segs = 240) {
@@ -431,10 +439,14 @@ function CameraGuard({
   controlsRef,
   isolatePole,
   siteTarget,
+  syncId,
+  applyingSyncRef,
 }: {
   controlsRef: React.RefObject<ComponentRef<typeof OrbitControls> | null>;
   isolatePole: boolean;
   siteTarget: [number, number, number];
+  syncId: string;
+  applyingSyncRef: React.MutableRefObject<boolean>;
 }) {
   const keys = useRef<Record<string, boolean>>({});
   const fwd = useMemo(() => new THREE.Vector3(), []);
@@ -443,6 +455,27 @@ function CameraGuard({
   const { camera } = useThree();
   const centerTrigger = useMissionStore((s) => s.centerTrigger);
   const prevTrigger = useRef(centerTrigger);
+
+  // Sync camera pose from other viewports (Compare Mode)
+  useEffect(() => {
+    const onSync = (msg: CameraSyncMsg) => {
+      if (msg.sourceId === syncId) return;
+      const ctrl = controlsRef.current;
+      if (!ctrl) return;
+      applyingSyncRef.current = true;
+      camera.position.set(msg.pos[0], msg.pos[1], msg.pos[2]);
+      ctrl.target.set(msg.target[0], msg.target[1], msg.target[2]);
+      ctrl.update();
+      applyingSyncRef.current = false;
+    };
+    cameraSyncListeners.add(onSync);
+    if (lastSyncedCamera && lastSyncedCamera.sourceId !== syncId) {
+      onSync(lastSyncedCamera);
+    }
+    return () => {
+      cameraSyncListeners.delete(onSync);
+    };
+  }, [syncId, controlsRef, camera, applyingSyncRef]);
 
   useEffect(() => {
     if (centerTrigger === prevTrigger.current) return;
@@ -524,6 +557,8 @@ function CameraGuard({
 
 function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOffsetHours?: number }) {
   const controlsRef = useRef<ComponentRef<typeof OrbitControls> | null>(null);
+  const applyingSyncRef = useRef(false);
+  const syncId = useId();
   const data = useMissionStore((s) => s.data)!;
   const isolatePole = useMissionStore((s) => s.isolatePole);
   const terrainBrightness = useMissionStore((s) => s.terrainBrightness);
@@ -614,6 +649,8 @@ function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOf
         controlsRef={controlsRef}
         isolatePole={isolatePole}
         siteTarget={[landingSite.x, siteY + 0.5, -landingSite.y]}
+        syncId={syncId}
+        applyingSyncRef={applyingSyncRef}
       />
       <OrbitControls
         ref={controlsRef}
@@ -624,6 +661,18 @@ function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOf
         minDistance={8}
         maxDistance={isolatePole ? 36 : 48}
         maxPolarAngle={Math.PI / 2.02}
+        onChange={() => {
+          if (applyingSyncRef.current) return;
+          const ctrl = controlsRef.current;
+          if (!ctrl) return;
+          const msg: CameraSyncMsg = {
+            sourceId: syncId,
+            pos: [ctrl.object.position.x, ctrl.object.position.y, ctrl.object.position.z],
+            target: [ctrl.target.x, ctrl.target.y, ctrl.target.z],
+          };
+          lastSyncedCamera = msg;
+          cameraSyncListeners.forEach((fn) => fn(msg));
+        }}
       />
     </>
   );

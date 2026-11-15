@@ -41,6 +41,7 @@ function ViewportCard({
   const setTerrainBrightness = useMissionStore((s) => s.setTerrainBrightness);
   const selectedLandmarkId = useMissionStore((s) => s.selectedLandmarkId);
   const setSelectedLandmarkId = useMissionStore((s) => s.setSelectedLandmarkId);
+  const missionStarted = useMissionStore((s) => s.missionStarted);
   const triggerCenter = useMissionStore((s) => s.triggerCenter);
   const lang = useMissionStore((s) => s.lang);
   const en = lang === "en";
@@ -160,8 +161,8 @@ function ViewportCard({
         </div>
       )}
 
-      {/* Educational landmark popover when clicking a "?" pin */}
-      {selectedLandmark && (
+      {/* Educational landmark popover in Phase 1 only (in Phase 2 it renders in the right operational column) */}
+      {!missionStarted && selectedLandmark && (
         <div className="absolute bottom-9 left-3 z-20 w-72 max-w-[calc(100%-1.5rem)] rounded-md border border-neutral-700 bg-[#141414]/95 p-3 text-xs text-neutral-100 shadow-2xl backdrop-blur-md">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -218,6 +219,9 @@ export default function Home() {
   const siteId = useMissionStore((s) => s.siteId);
   const lang = useMissionStore((s) => s.lang);
   const en = lang === "en";
+  const selectedLandmarkId = useMissionStore((s) => s.selectedLandmarkId);
+  const setSelectedLandmarkId = useMissionStore((s) => s.setSelectedLandmarkId);
+  const selectedLandmark = LUNAR_LANDMARKS.find((l) => l.id === selectedLandmarkId) ?? null;
   const setData = useMissionStore((s) => s.setData);
   const setError = useMissionStore((s) => s.setError);
 
@@ -357,6 +361,43 @@ export default function Home() {
             <aside className="flex w-full shrink-0 flex-col gap-3 lg:w-64 lg:overflow-y-auto">
               {!compare && <DetailedMetricsCards offsetHours={0} />}
               <OperationalAlert />
+              {selectedLandmark && (
+                <div className="rounded-md border border-neutral-800 bg-[#161616] p-3 text-xs text-neutral-100">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-[10px] font-semibold tracking-[0.14em] text-neutral-400">
+                      {en ? "ZONE INFO" : "INFO DE ZONA"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedLandmarkId(null)}
+                      aria-label={en ? "Close info" : "Cerrar información"}
+                      className="text-neutral-400 transition hover:text-white"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white text-[11px] font-bold text-black">
+                      ?
+                    </span>
+                    <div>
+                      <div className="font-semibold leading-tight text-white">
+                        {en ? selectedLandmark.nameEn : selectedLandmark.name}
+                      </div>
+                      <div className="mt-0.5 font-mono text-[9px] text-neutral-400">
+                        {en ? selectedLandmark.subtitleEn : selectedLandmark.subtitle}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-[11px] leading-relaxed text-neutral-300">
+                    {en ? selectedLandmark.descEn : selectedLandmark.desc}
+                  </p>
+                  <div className="mt-2 rounded border border-neutral-800 bg-[#1b1b1e] px-2 py-1.5 text-[10px] text-neutral-300">
+                    <span className="font-mono font-semibold text-white">{en ? "FACT: " : "DATO: "}</span>
+                    {en ? selectedLandmark.factEn : selectedLandmark.fact}
+                  </div>
+                </div>
+              )}
             </aside>
           </div>
         </div>

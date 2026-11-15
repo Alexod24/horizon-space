@@ -31,6 +31,7 @@ export default function MissionSetupPanel() {
   const setLandingSite = useMissionStore((s) => s.setLandingSite);
   const setVehicle = useMissionStore((s) => s.setVehicle);
   const setMissionStarted = useMissionStore((s) => s.setMissionStarted);
+  const setPlaying = useMissionStore((s) => s.setPlaying);
 
   if (!data) return null;
 
@@ -209,7 +210,10 @@ export default function MissionSetupPanel() {
 
       <button
         type="button"
-        onClick={() => setMissionStarted(true)}
+        onClick={() => {
+          setPlaying(true);
+          setMissionStarted(true);
+        }}
         className="w-full rounded-md bg-white py-2.5 text-xs font-bold tracking-wider text-black transition hover:bg-neutral-200"
       >
         {en ? "Start Simulation" : "Iniciar Simulación"}

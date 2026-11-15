@@ -28,6 +28,8 @@ const DAY = 86_400_000;
 export function useScenario(offsetHours: number): ScenarioState | null {
   const data = useMissionStore((s) => s.data);
   const timeMs = useMissionStore((s) => s.timeMs) + offsetHours * 3.6e6;
+  const lang = useMissionStore((s) => s.lang);
+  const en = lang === "en";
 
   return useMemo(() => {
     if (!data) return null;
@@ -43,18 +45,23 @@ export function useScenario(offsetHours: number): ScenarioState | null {
     const sun7d = fractionVisible(vis.sunPrefix, index, weekSteps);
 
     let risk: Risk = "BAJO";
-    let riskReason = "Ventanas amplias de luz y enlace";
+    let riskReason = en ? "Wide sun & comms windows" : "Ventanas amplias de luz y enlace";
     if (occ.sun || occ.earth) {
       risk = "ALTO";
-      riskReason = occ.sun && occ.earth ? "Sin luz ni enlace" : occ.sun ? "Sitio en sombra" : "Tierra oculta por relieve";
+      riskReason =
+        occ.sun && occ.earth
+          ? en ? "No sun & no comms" : "Sin luz ni enlace"
+          : occ.sun
+            ? en ? "Site in shadow" : "Sitio en sombra"
+            : en ? "Earth blocked by terrain" : "Tierra oculta por relieve";
     } else {
       const minWin = Math.min(sunWindow.msToChange, earthWindow.msToChange);
       if (minWin < DAY) {
         risk = "ALTO";
-        riskReason = "Próximo eclipse por relieve < 24 h";
+        riskReason = en ? "Next terrain eclipse < 24 h" : "Próximo eclipse por relieve < 24 h";
       } else if (minWin < 3 * DAY) {
         risk = "MEDIO";
-        riskReason = "Próximo eclipse por relieve < 72 h";
+        riskReason = en ? "Next terrain eclipse < 72 h" : "Próximo eclipse por relieve < 72 h";
       }
     }
 
@@ -63,5 +70,5 @@ export function useScenario(offsetHours: number): ScenarioState | null {
       sunRising: ahead.sun.el > sun.el,
       earth7d, sun7d, risk, riskReason,
     };
-  }, [data, timeMs]);
+  }, [data, timeMs, en]);
 }
