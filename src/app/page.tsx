@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { CompactMetricsCard, DetailedMetricsCards } from "@/components/hud/CriticalMetrics";
+import LandingPage from "@/components/hud/LandingPage";
 import MissionHeader from "@/components/hud/MissionHeader";
 import MissionSetupPanel from "@/components/hud/MissionSetupPanel";
 import OperationalAlert from "@/components/hud/OperationalAlert";
@@ -106,6 +107,7 @@ export default function Home() {
   const error = useMissionStore((s) => s.error);
   const data = useMissionStore((s) => s.data);
   const compare = useMissionStore((s) => s.compare);
+  const enteredApp = useMissionStore((s) => s.enteredApp);
   const missionStarted = useMissionStore((s) => s.missionStarted);
   const delayHours = useMissionStore((s) => s.delayHours);
   const siteId = useMissionStore((s) => s.siteId);
@@ -154,6 +156,10 @@ export default function Home() {
 
   const site = SITES.find((s) => s.id === siteId) ?? SITES[0];
   const coords = site.lat !== undefined && site.lon !== undefined ? formatCoord(site.lat, site.lon) : "—";
+
+  if (!enteredApp) {
+    return <LandingPage />;
+  }
 
   return (
     <main className="flex h-dvh flex-col bg-[#0f0f0f] text-neutral-100">

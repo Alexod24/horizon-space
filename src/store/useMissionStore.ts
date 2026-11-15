@@ -28,6 +28,7 @@ interface MissionState {
   compare: boolean;
   terrainMode: TerrainMode;
   isolatePole: boolean;
+  enteredApp: boolean;
   missionStarted: boolean;
   /** Landing site offset in km from zone centre (x = East, y = North). */
   landingSite: { x: number; y: number; elevationM: number };
@@ -43,6 +44,7 @@ interface MissionState {
   setCompare: (c: boolean) => void;
   setTerrainMode: (m: TerrainMode) => void;
   setIsolatePole: (v: boolean) => void;
+  setEnteredApp: (v: boolean) => void;
   setMissionStarted: (v: boolean) => void;
   setLandingSite: (xKm: number, yKm: number) => void;
   setVehicle: (id: string) => void;
@@ -61,6 +63,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   compare: true,
   terrainMode: "realistic",
   isolatePole: false,
+  enteredApp: false,
   missionStarted: false,
   landingSite: { x: 0, y: 0, elevationM: 0 },
   playing: false,
@@ -86,6 +89,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   setCompare: (compare) => set({ compare }),
   setTerrainMode: (terrainMode) => set({ terrainMode }),
   setIsolatePole: (isolatePole) => set({ isolatePole }),
+  setEnteredApp: (enteredApp) => set({ enteredApp }),
   setMissionStarted: (missionStarted) => set({ missionStarted }),
   setLandingSite: (xKm, yKm) => {
     const d = get().data;
