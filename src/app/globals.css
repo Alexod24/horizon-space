@@ -57,3 +57,146 @@ body {
   border: 2px solid #0f0f0f;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
+
+/* ─── Light Mode (Default) — keeps .viewport-3d-dark untouched in 3D space ─── */
+html[data-theme="light"],
+html[data-theme="light"] body {
+  background: #f1f5f9;
+  color: #0f172a;
+  color-scheme: light;
+}
+
+html[data-theme="light"] :not(.viewport-3d-dark):not(.viewport-3d-dark *) {
+  border-color: #cbd5e1;
+}
+
+html[data-theme="light"] .bg-\[\#080808\]:not(.viewport-3d-dark):not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-\[\#0a0a0a\]:not(.viewport-3d-dark):not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-\[\#0f0f0f\]:not(.viewport-3d-dark):not(.viewport-3d-dark *) {
+  background-color: #f1f5f9 !important;
+}
+
+html[data-theme="light"] .bg-\[\#0a0a0a\]\/85:not(.viewport-3d-dark *) {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+}
+
+html[data-theme="light"] .bg-\[\#141414\]:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-\[\#161616\]:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-\[\#1a1a1a\]:not(.viewport-3d-dark *) {
+  background-color: #ffffff !important;
+}
+
+html[data-theme="light"] .bg-\[\#111111\]:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-\[\#121212\]:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-\[\#121212\]\/80:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-\[\#1b1b1e\]:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-neutral-900:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-neutral-900\/90:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-neutral-900\/70:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-neutral-800:not(.viewport-3d-dark *) {
+  background-color: #f8fafc !important;
+}
+
+html[data-theme="light"] .border-neutral-900:not(.viewport-3d-dark *),
+html[data-theme="light"] .border-neutral-800:not(.viewport-3d-dark *),
+html[data-theme="light"] .border-neutral-800\/80:not(.viewport-3d-dark *),
+html[data-theme="light"] .border-neutral-800\/90:not(.viewport-3d-dark *),
+html[data-theme="light"] .border-neutral-700:not(.viewport-3d-dark *) {
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme="light"] .text-white:not(.viewport-3d-dark *),
+html[data-theme="light"] .text-neutral-100:not(.viewport-3d-dark *),
+html[data-theme="light"] .text-neutral-200:not(.viewport-3d-dark *) {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .text-neutral-300:not(.viewport-3d-dark *),
+html[data-theme="light"] .text-neutral-400:not(.viewport-3d-dark *) {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .text-neutral-500:not(.viewport-3d-dark *) {
+  color: #64748b !important;
+}
+
+/* Active buttons that use bg-white text-black in dark mode invert cleanly to slate-900 with white text in light mode */
+html[data-theme="light"] .bg-white.text-black:not(.viewport-3d-dark *) {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+}
+
+html[data-theme="light"] .bg-black\/50:not(.viewport-3d-dark *) {
+  background-color: #ffffff !important;
+}
+
+/* Semantic emerald / amber / rose statuses in light mode */
+html[data-theme="light"] .bg-emerald-950\/60:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-emerald-950\/50:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-emerald-950\/40:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-emerald-950\/30:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-emerald-950\/20:not(.viewport-3d-dark *) {
+  background-color: #ecfdf5 !important;
+  border-color: #6ee7b7 !important;
+}
+
+html[data-theme="light"] .text-emerald-300:not(.viewport-3d-dark *),
+html[data-theme="light"] .text-emerald-400:not(.viewport-3d-dark *) {
+  color: #047857 !important;
+}
+
+html[data-theme="light"] .bg-amber-950\/60:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-amber-950\/50:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-amber-950\/40:not(.viewport-3d-dark *) {
+  background-color: #fffbeb !important;
+  border-color: #fcd34d !important;
+}
+
+html[data-theme="light"] .text-amber-300:not(.viewport-3d-dark *),
+html[data-theme="light"] .text-amber-400\/90:not(.viewport-3d-dark *) {
+  color: #b45309 !important;
+}
+
+html[data-theme="light"] .bg-rose-950\/60:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-rose-950\/40:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-rose-950\/35:not(.viewport-3d-dark *),
+html[data-theme="light"] .bg-rose-950\/25:not(.viewport-3d-dark *) {
+  background-color: #fff1f2 !important;
+  border-color: #fda4af !important;
+}
+
+html[data-theme="light"] .text-rose-200:not(.viewport-3d-dark *),
+html[data-theme="light"] .text-rose-300:not(.viewport-3d-dark *),
+html[data-theme="light"] .text-rose-400:not(.viewport-3d-dark *) {
+  color: #be123c !important;
+}
+
+/* Range slider in Light Mode (outside 3D viewport) */
+html[data-theme="light"] .horizon-range:not(.viewport-3d-dark *)::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to right,
+    #0f172a var(--pct, 0%),
+    #cbd5e1 var(--pct, 0%)
+  );
+}
+
+html[data-theme="light"] .horizon-range:not(.viewport-3d-dark *)::-moz-range-track {
+  background: #cbd5e1;
+}
+
+html[data-theme="light"] .horizon-range:not(.viewport-3d-dark *)::-moz-range-progress {
+  background: #0f172a;
+}
+
+html[data-theme="light"] .horizon-range:not(.viewport-3d-dark *)::-webkit-slider-thumb {
+  background: #0f172a;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px #0f172a;
+}
+
+html[data-theme="light"] .horizon-range:not(.viewport-3d-dark *)::-moz-range-thumb {
+  background: #0f172a;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px #0f172a;
+}

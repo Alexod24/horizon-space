@@ -6,7 +6,10 @@ import { useMissionStore } from "@/store/useMissionStore";
 export default function MissionHeader() {
   const terrainSource = useMissionStore((s) => s.data?.terrainSource);
   const missionStarted = useMissionStore((s) => s.missionStarted);
+  const plannedLaunchMs = useMissionStore((s) => s.plannedLaunchMs);
   const setMissionStarted = useMissionStore((s) => s.setMissionStarted);
+  const setPlaying = useMissionStore((s) => s.setPlaying);
+  const setTime = useMissionStore((s) => s.setTime);
   const lang = useMissionStore((s) => s.lang);
   const en = lang === "en";
 
@@ -43,7 +46,11 @@ export default function MissionHeader() {
         {missionStarted && (
           <button
             type="button"
-            onClick={() => setMissionStarted(false)}
+            onClick={() => {
+              setPlaying(false);
+              setTime(plannedLaunchMs, false);
+              setMissionStarted(false);
+            }}
             className="rounded border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] font-medium text-neutral-200 transition hover:border-neutral-500 hover:bg-neutral-800"
           >
             {en ? "Configure Mission" : "Configurar Misión"}

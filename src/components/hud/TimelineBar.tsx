@@ -8,6 +8,7 @@ import { TRANSIT_PROFILES, useMissionStore } from "@/store/useMissionStore";
 const SPEEDS = [6, 24, 72];
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
+const MISSION_DAYS = 7;
 
 function toDateInputUTC(ms: number): string {
   const d = new Date(ms);
@@ -27,6 +28,7 @@ function fromDateInputPreserveTimeUTC(dateStr: string, currentMs: number): numbe
 export default function TimelineBar() {
   const data = useMissionStore((s) => s.data);
   const timeMs = useMissionStore((s) => s.timeMs);
+  const plannedLaunchMs = useMissionStore((s) => s.plannedLaunchMs);
   const transitDays = useMissionStore((s) => s.transitDays);
   const delayHours = useMissionStore((s) => s.delayHours);
   const compare = useMissionStore((s) => s.compare);
@@ -55,12 +57,18 @@ export default function TimelineBar() {
       const st = useMissionStore.getState();
       if (!st.data) return;
       const maxMs = st.data.timeline.t1Ms - st.transitDays * DAY_MS - st.delayHours * HOUR_MS;
+      const missionEndMs = Math.min(st.plannedLaunchMs + MISSION_DAYS * DAY_MS, maxMs);
       const next = st.timeMs + dt * st.speed * HOUR_MS;
-      setTime(next >= maxMs ? st.data.timeline.t0Ms : next);
+      if (next >= missionEndMs) {
+        setTime(missionEndMs, false);
+        setPlaying(false);
+        return;
+      }
+      setTime(next, false);
       raf = requestAnimationFrame(step);
     });
     return () => cancelAnimationFrame(raf);
-  }, [playing, data, setTime]);
+  }, [playing, data, setTime, setPlaying]);
 
   if (!data) return null;
 
@@ -72,6 +80,20 @@ export default function TimelineBar() {
   const pct = ((timeMs - t0Ms) / span) * 100;
   const delayPct = Math.min(((timeMs + delayMs - t0Ms) / span) * 100, 100);
   const touchdownMs = timeMs + transitMs;
+  const elapsedDays = Math.max(0, (timeMs - plannedLaunchMs) / DAY_MS);
+  const pastGuaranteedWindow = elapsedDays > MISSION_DAYS + 0.05;
+
+  const togglePlay = () => {
+    if (!playing) {
+      const missionEndMs = Math.min(plannedLaunchMs + MISSION_DAYS * DAY_MS, maxMs);
+      if (timeMs >= missionEndMs - stepMs || timeMs < plannedLaunchMs) {
+        setTime(plannedLaunchMs, false);
+      }
+      setPlaying(true);
+    } else {
+      setPlaying(false);
+    }
+  };
 
   const jumpToNextCrisis = () => {
     const minTouchdownIdx = Math.ceil(transitMs / stepMs);
@@ -90,7 +112,7 @@ export default function TimelineBar() {
       {/* Play + Speed */}
       <div className="flex items-center gap-1.5">
         <button
-          onClick={() => setPlaying(!playing)}
+          onClick={togglePlay}
           aria-label={playing ? "Pausar simulación" : "Reproducir simulación"}
           className="flex h-7 w-7 items-center justify-center rounded border border-neutral-700 bg-neutral-900 text-white transition hover:border-neutral-500 hover:bg-neutral-800"
         >
@@ -166,6 +188,21 @@ export default function TimelineBar() {
           <span>
             {en ? "Touchdown:" : "Alunizaje:"}{" "}
             <strong className="font-mono font-semibold text-white">{formatDate(touchdownMs, lang)}</strong>
+          </span>
+          <span
+            className={`rounded border px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
+              pastGuaranteedWindow
+                ? "border-amber-500/60 bg-amber-950/50 text-amber-300"
+                : "border-emerald-500/40 bg-emerald-950/30 text-emerald-300"
+            }`}
+          >
+            {pastGuaranteedWindow
+              ? en
+                ? `⚠ Day ${elapsedDays.toFixed(1)} (>7d guaranteed)`
+                : `⚠ Día ${elapsedDays.toFixed(1)} (fuera de los 7d asegurados)`
+              : en
+                ? `Day ${elapsedDays.toFixed(1)} / 7.0 guaranteed`
+                : `Día ${elapsedDays.toFixed(1)} / 7.0 asegurados`}
           </span>
         </div>
 

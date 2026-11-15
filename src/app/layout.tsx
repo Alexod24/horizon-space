@@ -12,7 +12,7 @@ export const viewport: Viewport = { themeColor: "#0f0f0f" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" data-theme="dark">
       <body className="min-h-dvh overflow-x-hidden bg-[#0f0f0f] text-neutral-100 antialiased lg:h-dvh lg:overflow-hidden">
         {children}
       </body>

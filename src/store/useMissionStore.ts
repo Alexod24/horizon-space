@@ -16,6 +16,7 @@ export interface MissionData {
 
 export type TerrainMode = "tactical" | "realistic";
 export type Lang = "es" | "en";
+export type ThemeMode = "light" | "dark";
 
 export interface TransitProfile {
   days: number;
@@ -77,6 +78,7 @@ interface MissionState {
   terrainMode: TerrainMode;
   terrainBrightness: number;
   lang: Lang;
+  theme: ThemeMode;
   isolatePole: boolean;
   centerTrigger: number;
   selectedLandmarkId: string | null;
@@ -101,6 +103,7 @@ interface MissionState {
   setTerrainMode: (m: TerrainMode) => void;
   setTerrainBrightness: (v: number) => void;
   setLang: (l: Lang) => void;
+  setTheme: (t: ThemeMode) => void;
   setIsolatePole: (v: boolean) => void;
   triggerCenter: () => void;
   setSelectedLandmarkId: (id: string | null) => void;
@@ -127,6 +130,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   terrainMode: "realistic",
   terrainBrightness: 1,
   lang: "es",
+  theme: "dark",
   isolatePole: true,
   centerTrigger: 0,
   selectedLandmarkId: null,
@@ -180,6 +184,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   setTerrainMode: (terrainMode) => set({ terrainMode }),
   setTerrainBrightness: (terrainBrightness) => set({ terrainBrightness: Math.min(3, Math.max(0.5, terrainBrightness)) }),
   setLang: (lang) => set({ lang }),
+  setTheme: (theme) => set({ theme }),
   setIsolatePole: (isolatePole) => set({ isolatePole }),
   triggerCenter: () => set((s) => ({ centerTrigger: s.centerTrigger + 1 })),
   setSelectedLandmarkId: (selectedLandmarkId) => set({ selectedLandmarkId }),

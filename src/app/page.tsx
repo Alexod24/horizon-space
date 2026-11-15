@@ -71,7 +71,7 @@ function ViewportCard({
   };
 
   return (
-    <div ref={cardRef} className="relative min-h-[300px] flex-1 overflow-hidden rounded-md border border-neutral-800 bg-[#0a0a0a] sm:min-h-[360px] lg:min-h-0">
+    <div ref={cardRef} className="viewport-3d-dark relative min-h-[300px] flex-1 overflow-hidden rounded-md border border-neutral-800 bg-[#0a0a0a] sm:min-h-[360px] lg:min-h-0">
       <HorizonScene offsetHours={offsetHours} ghostOffsetHours={ghostOffsetHours} />
 
       {/* Top overlay bar (responsive wrap so label and buttons never collide on mobile) */}

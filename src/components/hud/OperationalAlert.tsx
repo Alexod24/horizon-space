@@ -9,7 +9,7 @@ import { useMissionStore } from "@/store/useMissionStore";
 
 export function ViabilityVerdictCard() {
   const data = useMissionStore((s) => s.data);
-  const timeMs = useMissionStore((s) => s.timeMs);
+  const plannedLaunchMs = useMissionStore((s) => s.plannedLaunchMs);
   const transitDays = useMissionStore((s) => s.transitDays);
   const delayHours = useMissionStore((s) => s.delayHours);
   const vehicleId = useMissionStore((s) => s.vehicleId);
@@ -23,13 +23,13 @@ export function ViabilityVerdictCard() {
     return calculateMissionViability(
       data.timeline,
       data.vis,
-      timeMs,
+      plannedLaunchMs,
       transitDays,
       delayHours,
       veh.maxDarkHours,
       7,
     );
-  }, [data, timeMs, transitDays, delayHours, veh.maxDarkHours]);
+  }, [data, plannedLaunchMs, transitDays, delayHours, veh.maxDarkHours]);
 
   if (!viability) return null;
 
@@ -166,6 +166,16 @@ export function ViabilityVerdictCard() {
         </div>
       </div>
 
+      {/* 7-Day Guaranteed Window Explanation */}
+      <div className="mt-2.5 rounded border border-neutral-800 bg-[#121212] px-2.5 py-2 text-[10px] leading-relaxed text-neutral-400">
+        <strong className="text-neutral-200">
+          {en ? "⏳ 7 Guaranteed Days (168 h): " : "⏳ 7 días asegurados (168 h): "}
+        </strong>
+        {en
+          ? "This score guarantees solar light and Earth link during the first week after touchdown. Beyond 7 days, the ~29.5-day lunar cycle hides the Sun behind the crater rim and lunar night begins."
+          : "Esta ventana asegura luz solar y señal durante la primera semana en la Luna. Pasados los 7 días, el ciclo lunar (~29.5 días) oculta el Sol tras el cráter y comienza la noche polar."}
+      </div>
+
       {/* AI / System Recommendation Callout */}
       {opt && (
         <div className="mt-2.5 rounded border border-neutral-700 bg-[#111111] p-2.5">
@@ -212,7 +222,7 @@ export function ViabilityVerdictCard() {
 
 export default function OperationalAlert() {
   const data = useMissionStore((s) => s.data);
-  const timeMs = useMissionStore((s) => s.timeMs);
+  const plannedLaunchMs = useMissionStore((s) => s.plannedLaunchMs);
   const transitDays = useMissionStore((s) => s.transitDays);
   const delayHours = useMissionStore((s) => s.delayHours);
   const vehicleId = useMissionStore((s) => s.vehicleId);
@@ -230,13 +240,13 @@ export default function OperationalAlert() {
     return calculateMissionViability(
       data.timeline,
       data.vis,
-      timeMs,
+      plannedLaunchMs,
       transitDays,
       delayHours,
       veh.maxDarkHours,
       7,
     );
-  }, [data, timeMs, transitDays, delayHours, veh.maxDarkHours]);
+  }, [data, plannedLaunchMs, transitDays, delayHours, veh.maxDarkHours]);
 
   if (!nominal || !crisis) return null;
 
@@ -334,6 +344,13 @@ export default function OperationalAlert() {
                 </span>
               </div>
             </div>
+          </div>
+
+          <div className="mt-2.5 rounded border border-neutral-800/80 bg-[#121212]/80 px-2.5 py-1.5 text-[10px] leading-snug text-neutral-400">
+            ⏳{" "}
+            {en
+              ? "Guaranteed for 7 days after landing (then lunar night begins)."
+              : "Tienes 7 días asegurados tras el alunizaje; después entra la noche lunar."}
           </div>
 
           {opt && !(nominalOk && crisisOk) && (
