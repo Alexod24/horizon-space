@@ -34,6 +34,9 @@ function ViewportCard({
 }) {
   const outOfBoundsKm = useMissionStore((s) => s.outOfBoundsKm);
   const setOutOfBoundsKm = useMissionStore((s) => s.setOutOfBoundsKm);
+  const isolatePole = useMissionStore((s) => s.isolatePole);
+  const setIsolatePole = useMissionStore((s) => s.setIsolatePole);
+  const triggerCenter = useMissionStore((s) => s.triggerCenter);
   const cardRef = useRef<HTMLDivElement>(null);
   const [isFs, setIsFs] = useState(false);
 
@@ -59,16 +62,42 @@ function ViewportCard({
         <div className="font-mono text-[10px] text-neutral-400">COORDS: {coords} · CÚPULA R = 15 KM</div>
       </div>
 
-      {/* Top-right fullscreen button */}
-      <button
-        type="button"
-        onClick={toggleFullscreen}
-        title={isFs ? "Salir de pantalla completa" : "Ver en pantalla completa"}
-        aria-label={isFs ? "Salir de pantalla completa" : "Ver en pantalla completa"}
-        className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded border border-neutral-700 bg-[#141414]/85 text-xs text-neutral-200 backdrop-blur-sm transition hover:border-neutral-500 hover:bg-neutral-800"
-      >
-        {isFs ? "✕" : "⛶"}
-      </button>
+      {/* Top-right viewport controls */}
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => setIsolatePole(!isolatePole)}
+          title={isolatePole ? "Cambiar a mapa completo (±80 km)" : "Mostrar solo Polo Sur (15 km)"}
+          className={`flex h-7 items-center gap-1 rounded border px-2.5 text-[10px] font-medium backdrop-blur-sm transition ${
+            isolatePole
+              ? "border-neutral-600 bg-neutral-800/90 text-white"
+              : "border-neutral-700 bg-[#141414]/85 text-neutral-300 hover:border-neutral-500 hover:text-white"
+          }`}
+        >
+          {isolatePole ? "Solo Polo Sur" : "Mapa Completo"}
+        </button>
+
+        <button
+          type="button"
+          onClick={triggerCenter}
+          title="Centrar cámara en el sitio de aterrizaje"
+          aria-label="Centrar cámara en el sitio de aterrizaje"
+          className="flex h-7 items-center gap-1 rounded border border-neutral-700 bg-[#141414]/85 px-2.5 text-[10px] font-medium text-neutral-200 backdrop-blur-sm transition hover:border-neutral-500 hover:bg-neutral-800 hover:text-white"
+        >
+          <span aria-hidden="true">⌖</span>
+          <span>Centrar</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          title={isFs ? "Salir de pantalla completa" : "Ver en pantalla completa"}
+          aria-label={isFs ? "Salir de pantalla completa" : "Ver en pantalla completa"}
+          className="flex h-7 w-7 items-center justify-center rounded border border-neutral-700 bg-[#141414]/85 text-xs text-neutral-200 backdrop-blur-sm transition hover:border-neutral-500 hover:bg-neutral-800"
+        >
+          {isFs ? "✕" : "⛶"}
+        </button>
+      </div>
 
       {/* Out-of-bounds UX alert when clicking outside the 15 km South Pole dome */}
       {outOfBoundsKm !== null && (

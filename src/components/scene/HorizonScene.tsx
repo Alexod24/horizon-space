@@ -1,8 +1,8 @@
 "use client";
 
 import { type ComponentRef, useEffect, useMemo, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Html, Line, OrbitControls } from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Billboard, Line, OrbitControls, Text } from "@react-three/drei";
 import * as THREE from "three";
 import { sampleOrbital } from "@/lib/engine/data";
 import { findImpactDistance, maskHorizonAt, sampleHeight, type AzEl, type TerrainMatrix } from "@/lib/engine/occlusion";
@@ -142,16 +142,27 @@ function SkyDome({ mask, maskStep }: { mask: Float32Array; maskStep: number }) {
       {grid.map(({ e, pts }) => (
         <group key={e}>
           <Line points={pts} color="#a3a3a3" lineWidth={0.6} transparent opacity={0.14} dashed dashSize={0.4} gapSize={0.4} />
-          <Html position={skyPoint(180, e).toArray()} center zIndexRange={[5, 0]}>
-            <span className="pointer-events-none font-mono text-[9px] text-neutral-400/60">{e}°</span>
-          </Html>
+          <Billboard position={skyPoint(180, e).toArray()}>
+            <Text fontSize={0.55} color="#a3a3a3" fillOpacity={0.65} anchorX="center" anchorY="middle">
+              {`${e}°`}
+            </Text>
+          </Billboard>
         </group>
       ))}
       <Line points={relief} color={COLORS.danger} lineWidth={2.2} />
       {(["N", "E", "S", "O"] as const).map((l, i) => (
-        <Html key={l} position={skyPoint(i * 90, 0, DOME_R + 1.2).toArray()} center zIndexRange={[5, 0]}>
-          <span className={`pointer-events-none font-mono text-xs font-bold ${l === "N" ? "text-red-400" : "text-neutral-400"}`}>{l}</span>
-        </Html>
+        <Billboard key={l} position={skyPoint(i * 90, 0, DOME_R + 1.2).toArray()}>
+          <Text
+            fontSize={0.85}
+            color={l === "N" ? "#f87171" : "#a3a3a3"}
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.04}
+            outlineColor="#000000"
+          >
+            {l}
+          </Text>
+        </Billboard>
       ))}
     </group>
   );
@@ -310,16 +321,19 @@ function CelestialBody({
         </group>
       )}
 
-      <Html position={p.toArray()} zIndexRange={[10, 0]}>
-        <span
-          className={`pointer-events-none ml-3 -mt-2 inline-block whitespace-nowrap rounded border bg-black/70 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-wider ${
-            ghost ? "opacity-75" : ""
-          }`}
-          style={{ color: c, borderColor: c }}
+      <Billboard position={[p.x, p.y + (ghost ? 1.0 : 1.15), p.z]}>
+        <Text
+          fontSize={0.62}
+          color={c}
+          fillOpacity={ghost ? 0.8 : 1}
+          anchorX="center"
+          anchorY="bottom"
+          outlineWidth={0.05}
+          outlineColor="#000000"
         >
           {badge}
-        </span>
-      </Html>
+        </Text>
+      </Billboard>
     </group>
   );
 }
@@ -336,20 +350,42 @@ function SiteMarker() {
         <ringGeometry args={[0.35, 0.45, 48]} />
         <meshBasicMaterial color="#ffffff" transparent opacity={0.8} side={THREE.DoubleSide} />
       </mesh>
-      <Html position={[0, 0.8, 0]} zIndexRange={[10, 0]}>
-        <span className="pointer-events-none ml-3 whitespace-nowrap font-mono text-[10px] font-bold tracking-widest text-white" style={{ textShadow: "0 0 6px #000" }}>
+      <Billboard position={[0, 1.15, 0]}>
+        <Text fontSize={0.36} color="#ffffff" anchorX="center" anchorY="bottom" outlineWidth={0.03} outlineColor="#000000">
           SITIO DE ATERRIZAJE
-        </span>
-      </Html>
+        </Text>
+      </Billboard>
     </group>
   );
 }
 
-function KeyboardPan({ controlsRef }: { controlsRef: React.RefObject<ComponentRef<typeof OrbitControls> | null> }) {
+function CameraGuard({
+  controlsRef,
+  isolatePole,
+  siteTarget,
+}: {
+  controlsRef: React.RefObject<ComponentRef<typeof OrbitControls> | null>;
+  isolatePole: boolean;
+  siteTarget: [number, number, number];
+}) {
   const keys = useRef<Record<string, boolean>>({});
   const fwd = useMemo(() => new THREE.Vector3(), []);
   const right = useMemo(() => new THREE.Vector3(), []);
   const delta = useMemo(() => new THREE.Vector3(), []);
+  const { camera } = useThree();
+  const centerTrigger = useMissionStore((s) => s.centerTrigger);
+  const prevTrigger = useRef(centerTrigger);
+
+  useEffect(() => {
+    if (centerTrigger === prevTrigger.current) return;
+    prevTrigger.current = centerTrigger;
+    const ctrl = controlsRef.current;
+    if (!ctrl) return;
+    const [tx, ty, tz] = siteTarget;
+    ctrl.target.set(tx, ty, tz);
+    camera.position.set(tx, ty + 13.5, tz + 28);
+    ctrl.update();
+  }, [centerTrigger, controlsRef, camera, siteTarget]);
 
   useEffect(() => {
     const onDown = (e: KeyboardEvent) => {
@@ -370,25 +406,49 @@ function KeyboardPan({ controlsRef }: { controlsRef: React.RefObject<ComponentRe
     };
   }, []);
 
-  useFrame(({ camera }, dt) => {
+  useFrame((_, dt) => {
     const ctrl = controlsRef.current;
     if (!ctrl) return;
+
     const k = keys.current;
     const fb = (k.ArrowUp ? 1 : 0) - (k.ArrowDown ? 1 : 0);
     const lr = (k.ArrowRight ? 1 : 0) - (k.ArrowLeft ? 1 : 0);
-    if (!fb && !lr) return;
+    if (fb || lr) {
+      camera.getWorldDirection(fwd);
+      fwd.y = 0;
+      if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1);
+      fwd.normalize();
+      right.crossVectors(fwd, camera.up).normalize();
 
-    camera.getWorldDirection(fwd);
-    fwd.y = 0;
-    if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1);
-    fwd.normalize();
-    right.crossVectors(fwd, camera.up).normalize();
+      const speed = 18 * dt;
+      delta.set(0, 0, 0).addScaledVector(fwd, fb * speed).addScaledVector(right, lr * speed);
+      camera.position.add(delta);
+      ctrl.target.add(delta);
+    }
 
-    const speed = 18 * dt;
-    delta.set(0, 0, 0).addScaledVector(fwd, fb * speed).addScaledVector(right, lr * speed);
-    camera.position.add(delta);
-    ctrl.target.add(delta);
-    ctrl.update();
+    // Clamp target within the South Pole boundary so the user never loses the site
+    const maxPan = isolatePole ? 15 : 28;
+    const r = Math.hypot(ctrl.target.x, ctrl.target.z);
+    let clamped = false;
+    if (r > maxPan) {
+      const scale = maxPan / r;
+      const nx = ctrl.target.x * scale;
+      const nz = ctrl.target.z * scale;
+      camera.position.x += nx - ctrl.target.x;
+      camera.position.z += nz - ctrl.target.z;
+      ctrl.target.x = nx;
+      ctrl.target.z = nz;
+      clamped = true;
+    }
+    if (ctrl.target.y < -2 || ctrl.target.y > 8) {
+      const ny = Math.min(Math.max(ctrl.target.y, -2), 8);
+      camera.position.y += ny - ctrl.target.y;
+      ctrl.target.y = ny;
+      clamped = true;
+    }
+    if (fb || lr || clamped) {
+      ctrl.update();
+    }
   });
 
   return null;
@@ -479,7 +539,11 @@ function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOf
         </>
       )}
 
-      <KeyboardPan controlsRef={controlsRef} />
+      <CameraGuard
+        controlsRef={controlsRef}
+        isolatePole={isolatePole}
+        siteTarget={[landingSite.x, siteY + 0.5, -landingSite.y]}
+      />
       <OrbitControls
         ref={controlsRef}
         enablePan
@@ -487,7 +551,7 @@ function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOf
         enableDamping
         target={[0, 0.5, 0]}
         minDistance={8}
-        maxDistance={65}
+        maxDistance={isolatePole ? 36 : 48}
         maxPolarAngle={Math.PI / 2.02}
       />
     </>
