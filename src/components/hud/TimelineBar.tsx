@@ -14,6 +14,8 @@ export default function TimelineBar() {
   const compare = useMissionStore((s) => s.compare);
   const terrainMode = useMissionStore((s) => s.terrainMode);
   const isolatePole = useMissionStore((s) => s.isolatePole);
+  const lang = useMissionStore((s) => s.lang);
+  const en = lang === "en";
   const playing = useMissionStore((s) => s.playing);
   const speed = useMissionStore((s) => s.speed);
   const setTime = useMissionStore((s) => s.setTime);
@@ -85,8 +87,8 @@ export default function TimelineBar() {
       {/* Center Slider + Date */}
       <div className="flex min-w-[240px] flex-1 flex-col items-center">
         <div className="mb-0.5 flex items-center gap-2 text-[11px] text-neutral-400">
-          <span>Fecha de aterrizaje:</span>
-          <span className="font-mono font-semibold text-white">{formatDate(timeMs)}</span>
+          <span>{en ? "Landing date:" : "Fecha de aterrizaje:"}</span>
+          <span className="font-mono font-semibold text-white">{formatDate(timeMs, lang)}</span>
         </div>
 
         <div className="relative flex w-full max-w-2xl items-center">
@@ -123,7 +125,7 @@ export default function TimelineBar() {
             className={`px-2 py-1 font-medium transition ${terrainMode === "realistic" ? "bg-white text-black" : "text-neutral-400 hover:text-neutral-200"
               }`}
           >
-            Realista
+            {en ? "Realistic" : "Realista"}
           </button>
           <button
             type="button"
@@ -131,32 +133,32 @@ export default function TimelineBar() {
             className={`px-2 py-1 font-medium transition ${terrainMode === "tactical" ? "bg-white text-black" : "text-neutral-400 hover:text-neutral-200"
               }`}
           >
-            Táctico
+            {en ? "Tactical" : "Táctico"}
           </button>
         </div>
 
         <button
           type="button"
           onClick={() => setIsolatePole(!isolatePole)}
-          title="Mostrar únicamente el área del Polo Sur (radio 15 km)"
+          title={en ? "Show South Pole area only (15 km radius)" : "Mostrar únicamente el área del Polo Sur (radio 15 km)"}
           className={`hidden rounded border px-2 py-1 text-[10px] font-medium transition sm:inline-block ${isolatePole
             ? "border-white bg-white text-black"
             : "border-neutral-800 bg-neutral-900 text-neutral-300 hover:border-neutral-600"
             }`}
         >
-          {isolatePole ? "Solo Polo Sur ✓" : "Solo Polo Sur"}
+          {isolatePole ? (en ? "South Pole Only ✓" : "Solo Polo Sur ✓") : (en ? "South Pole Only" : "Solo Polo Sur")}
         </button>
 
         <button
           onClick={jumpToNextCrisis}
           className="rounded border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] font-medium text-neutral-200 transition hover:border-neutral-500 hover:bg-neutral-800"
-          title="Saltar al próximo instante donde el retraso provoca pérdida de luz o enlace"
+          title={en ? "Jump to next instant where delay causes sun or comms loss" : "Saltar al próximo instante donde el retraso provoca pérdida de luz o enlace"}
         >
-          Siguiente crisis
+          {en ? "Next crisis" : "Siguiente crisis"}
         </button>
 
         <label className="flex cursor-pointer select-none items-center gap-2 text-[11px] font-medium text-neutral-300">
-          <span>Comparar</span>
+          <span>{en ? "Compare" : "Comparar"}</span>
           <button
             type="button"
             role="switch"

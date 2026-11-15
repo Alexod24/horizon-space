@@ -406,6 +406,7 @@ function LandmarkPins({ terrain }: { terrain: TerrainMatrix }) {
 }
 
 function SiteMarker() {
+  const lang = useMissionStore((s) => s.lang);
   return (
     <group>
       <Line points={[new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0.8, 0)]} color="#ffffff" lineWidth={1.5} />
@@ -419,7 +420,7 @@ function SiteMarker() {
       </mesh>
       <Billboard position={[0, 1.15, 0]}>
         <Text fontSize={0.36} color="#ffffff" anchorX="center" anchorY="bottom" outlineWidth={0.03} outlineColor="#000000">
-          SITIO DE ATERRIZAJE
+          {lang === "en" ? "LANDING SITE" : "SITIO DE ATERRIZAJE"}
         </Text>
       </Billboard>
     </group>
@@ -526,6 +527,7 @@ function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOf
   const data = useMissionStore((s) => s.data)!;
   const isolatePole = useMissionStore((s) => s.isolatePole);
   const terrainBrightness = useMissionStore((s) => s.terrainBrightness);
+  const lang = useMissionStore((s) => s.lang);
   const landingSite = useMissionStore((s) => s.landingSite);
   const vehicleId = useMissionStore((s) => s.vehicleId);
   const veh = findVehicle(vehicleId);
@@ -590,7 +592,7 @@ function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOf
         blocked={sc.occ.sun}
         impactKm={sunImpactKm}
         siteOrigin={siteOrigin}
-        badge={`☉ ${sc.sun.el.toFixed(1)}° ${sc.occ.sun ? "OCULTO" : ""}`.trim()}
+        badge={`☉ ${sc.sun.el.toFixed(1)}° ${sc.occ.sun ? (lang === "en" ? "OCCLUDED" : "OCULTO") : ""}`.trim()}
       />
       <CelestialBody
         kind="earth"

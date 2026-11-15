@@ -24,6 +24,8 @@ export default function MissionSetupPanel() {
   const delayHours = useMissionStore((s) => s.delayHours);
   const landingSite = useMissionStore((s) => s.landingSite);
   const vehicleId = useMissionStore((s) => s.vehicleId);
+  const lang = useMissionStore((s) => s.lang);
+  const en = lang === "en";
   const setTime = useMissionStore((s) => s.setTime);
   const setDelay = useMissionStore((s) => s.setDelay);
   const setLandingSite = useMissionStore((s) => s.setLandingSite);
@@ -49,48 +51,57 @@ export default function MissionSetupPanel() {
     <aside className="z-20 flex w-full shrink-0 flex-col justify-between gap-4 border-t border-neutral-800 bg-[#141414] p-4 text-xs lg:w-80 lg:overflow-y-auto lg:border-l lg:border-t-0">
       <div className="space-y-4">
         <div>
-          <div className="text-[10px] font-semibold tracking-[0.16em] text-neutral-500">FASE 1 · PLANIFICACIÓN</div>
-          <h2 className="mt-0.5 text-base font-semibold text-white">Configurar Misión Lunar</h2>
+          <div className="text-[10px] font-semibold tracking-[0.16em] text-neutral-500">
+            {en ? "PHASE 1 · PLANNING" : "FASE 1 · PLANIFICACIÓN"}
+          </div>
+          <h2 className="mt-0.5 text-base font-semibold text-white">
+            {en ? "Configure Lunar Mission" : "Configurar Misión Lunar"}
+          </h2>
           <p className="mt-1 text-[11px] leading-relaxed text-neutral-400">
-            Marca tu punto de aterrizaje haciendo clic sobre el cráter (izquierda) y define la fecha y hora UTC del lanzamiento.
+            {en
+              ? "Click anywhere on the crater to mark your landing point and set the UTC launch date and time."
+              : "Marca tu punto de aterrizaje haciendo clic sobre el cráter (izquierda) y define la fecha y hora UTC del lanzamiento."}
           </p>
         </div>
 
         {/* 1. Landing Site */}
         <div className="rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold tracking-[0.12em] text-neutral-300">1. SITIO DE ATERRIZAJE</span>
+            <span className="text-[10px] font-semibold tracking-[0.12em] text-neutral-300">
+              {en ? "1. LANDING SITE" : "1. SITIO DE ATERRIZAJE"}
+            </span>
             <button
               type="button"
               onClick={() => setLandingSite(0, 0)}
               className="text-[10px] text-neutral-400 underline-offset-2 hover:text-white hover:underline"
             >
-              Centrar (0, 0)
+              {en ? "Center (0, 0)" : "Centrar (0, 0)"}
             </button>
           </div>
           <div className="mt-2 grid grid-cols-3 gap-2 font-mono text-[11px]">
             <div className="rounded border border-neutral-800 bg-[#111111] p-1.5">
-              <div className="text-[9px] text-neutral-500">ESTE (X)</div>
+              <div className="text-[9px] text-neutral-500">{en ? "EAST (X)" : "ESTE (X)"}</div>
               <div className="font-semibold text-white">{landingSite.x >= 0 ? "+" : ""}{landingSite.x.toFixed(2)} km</div>
             </div>
             <div className="rounded border border-neutral-800 bg-[#111111] p-1.5">
-              <div className="text-[9px] text-neutral-500">NORTE (Y)</div>
+              <div className="text-[9px] text-neutral-500">{en ? "NORTH (Y)" : "NORTE (Y)"}</div>
               <div className="font-semibold text-white">{landingSite.y >= 0 ? "+" : ""}{landingSite.y.toFixed(2)} km</div>
             </div>
             <div className="rounded border border-neutral-800 bg-[#111111] p-1.5">
-              <div className="text-[9px] text-neutral-500">ELEVACIÓN</div>
+              <div className="text-[9px] text-neutral-500">{en ? "ELEVATION" : "ELEVACIÓN"}</div>
               <div className="font-semibold text-white">{landingSite.elevationM >= 0 ? "+" : ""}{landingSite.elevationM.toFixed(0)} m</div>
             </div>
           </div>
           <div className="mt-2 text-[10px] text-neutral-500">
-            Distancia al centro: <span className="font-mono text-neutral-300">{distKm.toFixed(2)} km</span> / 15.00 km
+            {en ? "Distance to center:" : "Distancia al centro:"}{" "}
+            <span className="font-mono text-neutral-300">{distKm.toFixed(2)} km</span> / 15.00 km
           </div>
         </div>
 
         {/* 2. Date & Time */}
         <div className="rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
           <label htmlFor="launch-dt" className="block text-[10px] font-semibold tracking-[0.12em] text-neutral-300">
-            2. FECHA Y HORA DE LANZAMIENTO (UTC)
+            {en ? "2. LAUNCH DATE & TIME (UTC)" : "2. FECHA Y HORA DE LANZAMIENTO (UTC)"}
           </label>
           <input
             id="launch-dt"
@@ -109,7 +120,7 @@ export default function MissionSetupPanel() {
             onClick={suggestCrisis}
             className="mt-2 w-full rounded border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-[10px] font-medium text-neutral-200 transition hover:border-neutral-500 hover:bg-neutral-800"
           >
-            Buscar fecha con crisis de retraso
+            {en ? "Find date with delay crisis" : "Buscar fecha con crisis de retraso"}
           </button>
         </div>
 
@@ -117,9 +128,9 @@ export default function MissionSetupPanel() {
         <div className="rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[10px] font-semibold tracking-[0.12em] text-neutral-300">
-              3. EQUIPO / MÓDULO LUNAR
+              {en ? "3. LUNAR VEHICLE / LANDER" : "3. EQUIPO / MÓDULO LUNAR"}
             </span>
-            <span className="text-[9px] text-neutral-500">Opcional</span>
+            <span className="text-[9px] text-neutral-500">{en ? "Optional" : "Opcional"}</span>
           </div>
 
           <button
@@ -131,7 +142,7 @@ export default function MissionSetupPanel() {
                 : "border-neutral-800 bg-[#111111] text-neutral-300 hover:border-neutral-600"
             }`}
           >
-            <span>Sin equipo específico (Default)</span>
+            <span>{en ? "Standard Lander (Default)" : "Sin equipo específico (Default)"}</span>
             <span className="font-mono text-[9px] opacity-80">2.0m · 48h</span>
           </button>
 
@@ -143,7 +154,7 @@ export default function MissionSetupPanel() {
                   key={v.id}
                   type="button"
                   onClick={() => setVehicle(v.id)}
-                  title={v.summary}
+                  title={en ? v.summaryEn : v.summary}
                   className={`group flex flex-col overflow-hidden rounded border text-left transition ${
                     selected
                       ? "border-white bg-neutral-900 ring-1 ring-white"
@@ -164,7 +175,7 @@ export default function MissionSetupPanel() {
                     <div className="truncate text-[10px] font-semibold text-white">{v.name}</div>
                     <div className="truncate text-[9px] text-neutral-500">{v.agency}</div>
                     <div className="mt-0.5 font-mono text-[9px] text-neutral-300">
-                      Batería: {v.maxDarkHours}h
+                      {en ? "Battery:" : "Batería:"} {v.maxDarkHours}h
                     </div>
                   </div>
                 </button>
@@ -175,7 +186,9 @@ export default function MissionSetupPanel() {
 
         {/* 4. Delay */}
         <div className="rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
-          <div className="text-[10px] font-semibold tracking-[0.12em] text-neutral-300">4. RETRASO A SIMULAR</div>
+          <div className="text-[10px] font-semibold tracking-[0.12em] text-neutral-300">
+            {en ? "4. DELAY TO SIMULATE" : "4. RETRASO A SIMULAR"}
+          </div>
           <div className="mt-2 grid grid-cols-3 gap-1.5">
             {DELAYS.map((d) => (
               <button
@@ -199,7 +212,7 @@ export default function MissionSetupPanel() {
         onClick={() => setMissionStarted(true)}
         className="w-full rounded-md bg-white py-2.5 text-xs font-bold tracking-wider text-black transition hover:bg-neutral-200"
       >
-        Iniciar Simulación
+        {en ? "Start Simulation" : "Iniciar Simulación"}
       </button>
     </aside>
   );

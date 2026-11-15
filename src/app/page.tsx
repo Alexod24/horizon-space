@@ -42,6 +42,8 @@ function ViewportCard({
   const selectedLandmarkId = useMissionStore((s) => s.selectedLandmarkId);
   const setSelectedLandmarkId = useMissionStore((s) => s.setSelectedLandmarkId);
   const triggerCenter = useMissionStore((s) => s.triggerCenter);
+  const lang = useMissionStore((s) => s.lang);
+  const en = lang === "en";
   const selectedLandmark = LUNAR_LANDMARKS.find((l) => l.id === selectedLandmarkId) ?? null;
   const cardRef = useRef<HTMLDivElement>(null);
   const [isFs, setIsFs] = useState(false);
@@ -66,12 +68,14 @@ function ViewportCard({
       <div className="pointer-events-none absolute left-2.5 right-2.5 top-2.5 z-10 flex flex-wrap items-start justify-between gap-2 sm:left-3 sm:right-3 sm:top-3">
         <div className="max-w-full rounded border border-neutral-800 bg-[#141414]/85 px-2.5 py-1.5 backdrop-blur-sm">
           <div className="text-[10px] font-semibold tracking-wide text-neutral-100 sm:text-[11px]">{title}</div>
-          <div className="font-mono text-[9px] text-neutral-400 sm:text-[10px]">COORDS: {coords} · CÚPULA R = 15 KM</div>
+          <div className="font-mono text-[9px] text-neutral-400 sm:text-[10px]">
+            COORDS: {coords} · {en ? "DOME" : "CÚPULA"} R = 15 KM
+          </div>
         </div>
 
         <div className="pointer-events-auto flex flex-wrap items-center gap-1.5">
           <div
-            title="Ajustar brillo del terreno lunar"
+            title={en ? "Adjust lunar terrain brightness" : "Ajustar brillo del terreno lunar"}
             className="flex h-7 items-center gap-1.5 rounded border border-neutral-700 bg-[#141414]/85 px-2 text-[10px] text-neutral-300 backdrop-blur-sm"
           >
             <span aria-hidden="true" className="text-neutral-400">☀</span>
@@ -82,7 +86,7 @@ function ViewportCard({
               step={0.1}
               value={terrainBrightness}
               onChange={(e) => setTerrainBrightness(parseFloat(e.target.value))}
-              aria-label="Brillo del terreno lunar"
+              aria-label={en ? "Lunar terrain brightness" : "Brillo del terreno lunar"}
               className="horizon-range w-14 sm:w-20"
               style={{ "--pct": `${((terrainBrightness - 0.5) / 2.5) * 100}%` } as React.CSSProperties}
             />
@@ -94,32 +98,36 @@ function ViewportCard({
           <button
             type="button"
             onClick={() => setIsolatePole(!isolatePole)}
-            title={isolatePole ? "Cambiar a mapa completo (±80 km)" : "Mostrar solo Polo Sur (15 km)"}
+            title={
+              isolatePole
+                ? en ? "Switch to full map (±80 km)" : "Cambiar a mapa completo (±80 km)"
+                : en ? "Show South Pole only (15 km)" : "Mostrar solo Polo Sur (15 km)"
+            }
             className={`flex h-7 items-center gap-1 rounded border px-2 text-[10px] font-medium backdrop-blur-sm transition sm:px-2.5 ${
               isolatePole
                 ? "border-neutral-600 bg-neutral-800/90 text-white"
                 : "border-neutral-700 bg-[#141414]/85 text-neutral-300 hover:border-neutral-500 hover:text-white"
             }`}
           >
-            {isolatePole ? "Solo Polo Sur" : "Mapa Completo"}
+            {isolatePole ? (en ? "South Pole Only" : "Solo Polo Sur") : (en ? "Full Map" : "Mapa Completo")}
           </button>
 
           <button
             type="button"
             onClick={triggerCenter}
-            title="Centrar cámara en el sitio de aterrizaje"
-            aria-label="Centrar cámara en el sitio de aterrizaje"
+            title={en ? "Center camera on landing site" : "Centrar cámara en el sitio de aterrizaje"}
+            aria-label={en ? "Center camera on landing site" : "Centrar cámara en el sitio de aterrizaje"}
             className="flex h-7 items-center gap-1 rounded border border-neutral-700 bg-[#141414]/85 px-2 text-[10px] font-medium text-neutral-200 backdrop-blur-sm transition hover:border-neutral-500 hover:bg-neutral-800 hover:text-white sm:px-2.5"
           >
             <span aria-hidden="true">⌖</span>
-            <span>Centrar</span>
+            <span>{en ? "Center" : "Centrar"}</span>
           </button>
 
           <button
             type="button"
             onClick={toggleFullscreen}
-            title={isFs ? "Salir de pantalla completa" : "Ver en pantalla completa"}
-            aria-label={isFs ? "Salir de pantalla completa" : "Ver en pantalla completa"}
+            title={isFs ? (en ? "Exit fullscreen" : "Salir de pantalla completa") : (en ? "View fullscreen" : "Ver en pantalla completa")}
+            aria-label={isFs ? (en ? "Exit fullscreen" : "Salir de pantalla completa") : (en ? "View fullscreen" : "Ver en pantalla completa")}
             className="flex h-7 w-7 items-center justify-center rounded border border-neutral-700 bg-[#141414]/85 text-xs text-neutral-200 backdrop-blur-sm transition hover:border-neutral-500 hover:bg-neutral-800"
           >
             {isFs ? "✕" : "⛶"}
@@ -132,15 +140,19 @@ function ViewportCard({
         <div className="absolute right-12 top-3 z-20 flex max-w-xs items-start gap-2 rounded border border-neutral-700 bg-[#191919]/95 px-3 py-2 text-[11px] text-neutral-100 shadow-lg backdrop-blur-sm">
           <div className="flex-1">
             <div className="font-semibold tracking-wide text-amber-300">
-              ⚠ Fuera de zona Polo Sur ({outOfBoundsKm} km &gt; 15 km)
+              {en
+                ? `⚠ Outside South Pole zone (${outOfBoundsKm} km > 15 km)`
+                : `⚠ Fuera de zona Polo Sur (${outOfBoundsKm} km > 15 km)`}
             </div>
             <p className="mt-0.5 text-[10px] leading-snug text-neutral-400">
-              El análisis de oclusión y efemérides aplica dentro del radio de 15 km de la cúpula. Haz clic dentro del perímetro para volver.
+              {en
+                ? "Occlusion and ephemeris analysis applies within the 15 km dome radius. Click inside the perimeter to return."
+                : "El análisis de oclusión y efemérides aplica dentro del radio de 15 km de la cúpula. Haz clic dentro del perímetro para volver."}
             </p>
           </div>
           <button
             onClick={() => setOutOfBoundsKm(null)}
-            aria-label="Cerrar aviso"
+            aria-label={en ? "Close alert" : "Cerrar aviso"}
             className="text-neutral-400 hover:text-white"
           >
             ✕
@@ -157,23 +169,29 @@ function ViewportCard({
                 ?
               </span>
               <div>
-                <div className="font-semibold leading-tight text-white">{selectedLandmark.name}</div>
-                <div className="font-mono text-[9px] text-neutral-400">{selectedLandmark.subtitle}</div>
+                <div className="font-semibold leading-tight text-white">
+                  {en ? selectedLandmark.nameEn : selectedLandmark.name}
+                </div>
+                <div className="font-mono text-[9px] text-neutral-400">
+                  {en ? selectedLandmark.subtitleEn : selectedLandmark.subtitle}
+                </div>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setSelectedLandmarkId(null)}
-              aria-label="Cerrar información"
+              aria-label={en ? "Close info" : "Cerrar información"}
               className="text-neutral-400 transition hover:text-white"
             >
               ✕
             </button>
           </div>
-          <p className="mt-2 text-[11px] leading-relaxed text-neutral-300">{selectedLandmark.desc}</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-neutral-300">
+            {en ? selectedLandmark.descEn : selectedLandmark.desc}
+          </p>
           <div className="mt-2 rounded border border-neutral-800 bg-[#1b1b1e] px-2 py-1.5 text-[10px] text-neutral-300">
-            <span className="font-mono font-semibold text-white">DATO: </span>
-            {selectedLandmark.fact}
+            <span className="font-mono font-semibold text-white">{en ? "FACT: " : "DATO: "}</span>
+            {en ? selectedLandmark.factEn : selectedLandmark.fact}
           </div>
         </div>
       )}
@@ -182,7 +200,7 @@ function ViewportCard({
       <div className="pointer-events-none absolute bottom-2.5 left-3 right-3 z-10 flex items-center justify-between text-[10px] text-neutral-500">
         <span className="font-mono">COORDS: {coords}</span>
         <span>
-          Source: {terrainSource === "lola" ? "LOLA DEM + JPL Horizons" : "Relieve provisional + JPL Horizons"}
+          Source: {terrainSource === "lola" ? "LOLA DEM + JPL Horizons" : en ? "Placeholder relief + JPL Horizons" : "Relieve provisional + JPL Horizons"}
         </span>
       </div>
     </div>
@@ -198,6 +216,8 @@ export default function Home() {
   const missionStarted = useMissionStore((s) => s.missionStarted);
   const delayHours = useMissionStore((s) => s.delayHours);
   const siteId = useMissionStore((s) => s.siteId);
+  const lang = useMissionStore((s) => s.lang);
+  const en = lang === "en";
   const setData = useMissionStore((s) => s.setData);
   const setError = useMissionStore((s) => s.setError);
 
@@ -255,13 +275,13 @@ export default function Home() {
 
       {status === "loading" && (
         <div className="flex flex-1 items-center justify-center font-mono text-xs tracking-widest text-neutral-400">
-          CARGANDO EFEMÉRIDES JPL Y MOTOR DE OCLUSIÓN...
+          {en ? "LOADING JPL EPHEMERIS & OCCLUSION ENGINE..." : "CARGANDO EFEMÉRIDES JPL Y MOTOR DE OCLUSIÓN..."}
         </div>
       )}
 
       {status === "error" && (
         <div className="flex flex-1 items-center justify-center p-6 text-center font-mono text-xs text-rose-400">
-          Error inicializando simulación: {error}
+          {en ? "Error initializing simulation:" : "Error inicializando simulación:"} {error}
         </div>
       )}
 
@@ -269,7 +289,11 @@ export default function Home() {
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
           <div className="flex h-[50vh] min-h-[300px] p-2 sm:p-3 lg:h-auto lg:min-h-0 lg:flex-1">
             <ViewportCard
-              title={`SELECCIÓN DE SITIO DE ATERRIZAJE (${site.name}) — HAZ CLIC EN EL CRÁTER`}
+              title={
+                en
+                  ? `LANDING SITE SELECTION (${site.name}) — CLICK ON THE CRATER`
+                  : `SELECCIÓN DE SITIO DE ATERRIZAJE (${site.name}) — HAZ CLIC EN EL CRÁTER`
+              }
               coords={coords}
               offsetHours={0}
               terrainSource={data.terrainSource}
@@ -289,7 +313,11 @@ export default function Home() {
               <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="flex min-h-0 flex-col gap-2.5">
                   <ViewportCard
-                    title={`VISUALIZACIÓN DEL HORIZONTE (${site.name} · T+0H NOMINAL)`}
+                    title={
+                      en
+                        ? `HORIZON VIEW (${site.name} · T+0H NOMINAL)`
+                        : `VISUALIZACIÓN DEL HORIZONTE (${site.name} · T+0H NOMINAL)`
+                    }
                     coords={coords}
                     offsetHours={0}
                     terrainSource={data.terrainSource}
@@ -299,7 +327,11 @@ export default function Home() {
 
                 <div className="flex min-h-0 flex-col gap-2.5">
                   <ViewportCard
-                    title={`VISUALIZACIÓN DEL HORIZONTE (${site.name} · RETRASO +${delayHours}H)`}
+                    title={
+                      en
+                        ? `HORIZON VIEW (${site.name} · DELAY +${delayHours}H)`
+                        : `VISUALIZACIÓN DEL HORIZONTE (${site.name} · RETRASO +${delayHours}H)`
+                    }
                     coords={coords}
                     offsetHours={delayHours}
                     terrainSource={data.terrainSource}
@@ -309,7 +341,11 @@ export default function Home() {
               </div>
             ) : (
               <ViewportCard
-                title={`VISUALIZACIÓN DEL HORIZONTE LOCAL (${site.name})`}
+                title={
+                  en
+                    ? `LOCAL HORIZON VIEW (${site.name})`
+                    : `VISUALIZACIÓN DEL HORIZONTE LOCAL (${site.name})`
+                }
                 coords={coords}
                 offsetHours={0}
                 ghostOffsetHours={delayHours}

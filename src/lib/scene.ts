@@ -24,8 +24,8 @@ export function skyPoint(azDeg: number, elDeg: number, r = DOME_R): THREE.Vector
   return new THREE.Vector3(Math.sin(az) * Math.cos(el) * r, Math.sin(el) * r, -Math.cos(az) * Math.cos(el) * r);
 }
 
-export function formatDuration(ms: number): string {
-  if (!Number.isFinite(ms)) return "> fin de datos";
+export function formatDuration(ms: number, lang: "es" | "en" = "es"): string {
+  if (!Number.isFinite(ms)) return lang === "en" ? "> end of data" : "> fin de datos";
   const totalMin = Math.round(ms / 60000);
   const d = Math.floor(totalMin / 1440);
   const h = Math.floor((totalMin % 1440) / 60);
@@ -34,11 +34,13 @@ export function formatDuration(ms: number): string {
   return `${h}h ${String(m).padStart(2, "0")}min`;
 }
 
-const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-export function formatDate(ms: number): string {
+const MONTHS_ES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export function formatDate(ms: number, lang: "es" | "en" = "es"): string {
   const d = new Date(ms);
   const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(d.getUTCDate())}/${MONTHS[d.getUTCMonth()]}/${d.getUTCFullYear()}, ${p(d.getUTCHours())}:${p(d.getUTCMinutes())} UTC`;
+  const months = lang === "en" ? MONTHS_EN : MONTHS_ES;
+  return `${p(d.getUTCDate())}/${months[d.getUTCMonth()]}/${d.getUTCFullYear()}, ${p(d.getUTCHours())}:${p(d.getUTCMinutes())} UTC`;
 }
 
 export function formatCoord(lat: number, lon: number): string {

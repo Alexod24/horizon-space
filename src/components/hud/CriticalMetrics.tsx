@@ -2,11 +2,18 @@
 
 import { formatDuration } from "@/lib/scene";
 import { useScenario } from "@/lib/useScenario";
+import { useMissionStore } from "@/store/useMissionStore";
 
 const RISK_STYLE = {
   ALTO: "text-rose-400",
   MEDIO: "text-amber-300",
   BAJO: "text-emerald-400",
+} as const;
+
+const RISK_LABEL_EN = {
+  ALTO: "HIGH",
+  MEDIO: "MEDIUM",
+  BAJO: "LOW",
 } as const;
 
 function ProgressBar({ pct, color }: { pct: number; color: string }) {
@@ -23,6 +30,8 @@ function ProgressBar({ pct, color }: { pct: number; color: string }) {
 /** Compact card shown below each 3D viewport in Compare mode. */
 export function CompactMetricsCard({ offsetHours }: { offsetHours: number }) {
   const sc = useScenario(offsetHours);
+  const lang = useMissionStore((s) => s.lang);
+  const en = lang === "en";
   if (!sc) return null;
 
   const sunPct = sc.sunWindow.visible
@@ -35,9 +44,11 @@ export function CompactMetricsCard({ offsetHours }: { offsetHours: number }) {
   return (
     <div className="shrink-0 rounded-md border border-neutral-800 bg-[#161616] p-3 text-xs">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[10px] font-semibold tracking-[0.14em] text-neutral-400">MÉTRICAS CRÍTICAS</span>
+        <span className="text-[10px] font-semibold tracking-[0.14em] text-neutral-400">
+          {en ? "CRITICAL METRICS" : "MÉTRICAS CRÍTICAS"}
+        </span>
         <span className="font-mono text-[10px] text-neutral-400">
-          Sol {sc.sun.el.toFixed(2)}° · Tierra {sc.occ.earth ? "OFF" : "ON"}
+          {en ? "Sun" : "Sol"} {sc.sun.el.toFixed(2)}° · {en ? "Earth" : "Tierra"} {sc.occ.earth ? "OFF" : "ON"}
         </span>
       </div>
 
@@ -45,10 +56,14 @@ export function CompactMetricsCard({ offsetHours }: { offsetHours: number }) {
         <div>
           <div className="flex justify-between text-[11px]">
             <span className="text-neutral-400">
-              {sc.sunWindow.visible ? "Ventana solar restante" : "Próximo amanecer"}
+              {sc.sunWindow.visible
+                ? en ? "Remaining solar window" : "Ventana solar restante"
+                : en ? "Next sunrise" : "Próximo amanecer"}
             </span>
             <span className={`font-mono font-semibold ${sc.occ.sun ? "text-rose-400" : "text-white"}`}>
-              {sc.occ.sun ? `Oculto (${formatDuration(sc.sunWindow.msToChange)})` : formatDuration(sc.sunWindow.msToChange)}
+              {sc.occ.sun
+                ? `${en ? "Occluded" : "Oculto"} (${formatDuration(sc.sunWindow.msToChange, lang)})`
+                : formatDuration(sc.sunWindow.msToChange, lang)}
             </span>
           </div>
           <ProgressBar pct={sunPct} color={sc.occ.sun ? "#ff3b4e" : "#ffffff"} />
@@ -57,19 +72,23 @@ export function CompactMetricsCard({ offsetHours }: { offsetHours: number }) {
         <div>
           <div className="flex justify-between text-[11px]">
             <span className="text-neutral-400">
-              {sc.earthWindow.visible ? "Ventana de com. directa" : "Próximo enlace"}
+              {sc.earthWindow.visible
+                ? en ? "Direct comms window" : "Ventana de com. directa"
+                : en ? "Next link" : "Próximo enlace"}
             </span>
             <span className={`font-mono font-semibold ${sc.occ.earth ? "text-rose-400" : "text-white"}`}>
-              {sc.occ.earth ? `Sin enlace (${formatDuration(sc.earthWindow.msToChange)})` : formatDuration(sc.earthWindow.msToChange)}
+              {sc.occ.earth
+                ? `${en ? "No link" : "Sin enlace"} (${formatDuration(sc.earthWindow.msToChange, lang)})`
+                : formatDuration(sc.earthWindow.msToChange, lang)}
             </span>
           </div>
           <ProgressBar pct={earthPct} color={sc.occ.earth ? "#ff3b4e" : "#a3a3a3"} />
         </div>
 
         <div className="flex items-center justify-between border-t border-neutral-800 pt-2 text-[11px]">
-          <span className="text-neutral-400">Riesgo de blackout</span>
+          <span className="text-neutral-400">{en ? "Blackout risk" : "Riesgo de blackout"}</span>
           <span className="font-mono">
-            <strong className={RISK_STYLE[sc.risk]}>{sc.risk}</strong>{" "}
+            <strong className={RISK_STYLE[sc.risk]}>{en ? RISK_LABEL_EN[sc.risk] : sc.risk}</strong>{" "}
             <span className="text-neutral-500">({sc.riskReason})</span>
           </span>
         </div>
@@ -81,6 +100,8 @@ export function CompactMetricsCard({ offsetHours }: { offsetHours: number }) {
 /** Detailed stacked cards shown in the right sidebar when in single-viewport mode. */
 export function DetailedMetricsCards({ offsetHours }: { offsetHours: number }) {
   const sc = useScenario(offsetHours);
+  const lang = useMissionStore((s) => s.lang);
+  const en = lang === "en";
   if (!sc) return null;
 
   const sunPct = sc.sunWindow.visible
@@ -94,32 +115,36 @@ export function DetailedMetricsCards({ offsetHours }: { offsetHours: number }) {
     <div className="space-y-3">
       {/* Solar Card */}
       <div className="rounded-md border border-neutral-800 bg-[#161616] p-3 text-xs">
-        <div className="text-[10px] font-semibold tracking-[0.14em] text-neutral-400">MÉTRICAS CRÍTICAS</div>
+        <div className="text-[10px] font-semibold tracking-[0.14em] text-neutral-400">
+          {en ? "CRITICAL METRICS" : "MÉTRICAS CRÍTICAS"}
+        </div>
         <div className="mt-0.5 text-[10px] font-bold tracking-widest text-neutral-200">SOLAR</div>
 
         <div className="mt-2">
           <div className="flex justify-between text-[11px]">
             <span className="text-neutral-400">
-              {sc.sunWindow.visible ? "Ventana solar restante" : "Próximo amanecer"}
+              {sc.sunWindow.visible
+                ? en ? "Remaining solar window" : "Ventana solar restante"
+                : en ? "Next sunrise" : "Próximo amanecer"}
             </span>
             <span className="font-mono font-semibold text-white">
-              {formatDuration(sc.sunWindow.msToChange)}
+              {formatDuration(sc.sunWindow.msToChange, lang)}
             </span>
           </div>
           <ProgressBar pct={sunPct} color={sc.occ.sun ? "#ff3b4e" : "#ffffff"} />
         </div>
 
         <div className="mt-3 border-t border-neutral-800 pt-2">
-          <div className="text-[10px] text-neutral-500">Ángulo de elevación solar</div>
+          <div className="text-[10px] text-neutral-500">{en ? "Solar elevation angle" : "Ángulo de elevación solar"}</div>
           <div className="mt-0.5 flex items-baseline justify-between">
             <span className={`font-mono text-base font-bold ${sc.occ.sun ? "text-rose-400" : "text-white"}`}>
               {sc.sun.el.toFixed(2)}°{" "}
               <span className="text-xs font-normal text-neutral-400">
-                ({sc.sunRising ? "Ascendente" : "Descendente"})
+                ({sc.sunRising ? (en ? "Rising" : "Ascendente") : (en ? "Setting" : "Descendente")})
               </span>
             </span>
             <span className={`text-[10px] font-bold ${sc.occ.sun ? "text-rose-400" : "text-emerald-400"}`}>
-              {sc.occ.sun ? "OCULTO" : "VISIBLE"}
+              {sc.occ.sun ? (en ? "OCCLUDED" : "OCULTO") : "VISIBLE"}
             </span>
           </div>
         </div>
@@ -127,15 +152,19 @@ export function DetailedMetricsCards({ offsetHours }: { offsetHours: number }) {
 
       {/* Comms Card */}
       <div className="rounded-md border border-neutral-800 bg-[#161616] p-3 text-xs">
-        <div className="text-[10px] font-bold tracking-[0.14em] text-neutral-200">COMUNICACIONES</div>
+        <div className="text-[10px] font-bold tracking-[0.14em] text-neutral-200">
+          {en ? "COMMUNICATIONS" : "COMUNICACIONES"}
+        </div>
 
         <div className="mt-2">
           <div className="flex justify-between text-[11px]">
             <span className="text-neutral-400">
-              {sc.earthWindow.visible ? "Ventana com. directa" : "Próximo enlace"}
+              {sc.earthWindow.visible
+                ? en ? "Direct comms window" : "Ventana com. directa"
+                : en ? "Next link" : "Próximo enlace"}
             </span>
             <span className="font-mono font-semibold text-white">
-              {formatDuration(sc.earthWindow.msToChange)}
+              {formatDuration(sc.earthWindow.msToChange, lang)}
             </span>
           </div>
           <ProgressBar pct={earthPct} color={sc.occ.earth ? "#ff3b4e" : "#a3a3a3"} />
@@ -143,13 +172,13 @@ export function DetailedMetricsCards({ offsetHours }: { offsetHours: number }) {
 
         <div className="mt-3 flex items-center justify-between border-t border-neutral-800 pt-2">
           <div>
-            <div className="text-[10px] text-neutral-500">Estado de enlace</div>
+            <div className="text-[10px] text-neutral-500">{en ? "Link status" : "Estado de enlace"}</div>
             <div className={`font-mono text-sm font-bold ${sc.occ.earth ? "text-rose-400" : "text-emerald-400"}`}>
-              {sc.occ.earth ? "Sin enlace directo" : "Estable"}
+              {sc.occ.earth ? (en ? "No direct link" : "Sin enlace directo") : (en ? "Stable" : "Estable")}
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[10px] text-neutral-500">Vis. 7 días</div>
+            <div className="text-[10px] text-neutral-500">{en ? "7-day vis." : "Vis. 7 días"}</div>
             <div className="font-mono text-sm font-bold text-white">
               {(sc.earth7d * 100).toFixed(0)}%
             </div>

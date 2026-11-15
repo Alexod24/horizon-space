@@ -5,6 +5,8 @@ import { useMissionStore } from "@/store/useMissionStore";
 
 export default function SiteSidebar() {
   const siteId = useMissionStore((s) => s.siteId);
+  const lang = useMissionStore((s) => s.lang);
+  const en = lang === "en";
 
   return (
     <aside className="hidden w-44 shrink-0 flex-col border-r border-neutral-800 bg-[#141414] p-3 lg:flex">
@@ -21,7 +23,7 @@ export default function SiteSidebar() {
       </div>
 
       <div className="mb-2 px-1 text-[10px] font-semibold tracking-[0.14em] text-neutral-500">
-        SITIOS LUNARES
+        {en ? "LUNAR SITES" : "SITIOS LUNARES"}
       </div>
 
       <nav className="flex flex-col gap-1">
@@ -31,7 +33,7 @@ export default function SiteSidebar() {
             <button
               key={s.id}
               disabled={!s.ready}
-              title={s.ready ? `${s.name}` : "Requiere efemérides Horizons y LOLA DEM"}
+              title={s.ready ? `${s.name}` : en ? "Requires Horizons ephemeris & LOLA DEM" : "Requiere efemérides Horizons y LOLA DEM"}
               className={`flex items-center justify-between rounded px-2.5 py-1.5 text-left text-xs transition ${
                 active
                   ? "bg-white font-semibold text-black"
@@ -39,14 +41,14 @@ export default function SiteSidebar() {
               }`}
             >
               <span>{s.name}</span>
-              {!s.ready && <span className="text-[9px] text-neutral-600">Pronto</span>}
+              {!s.ready && <span className="text-[9px] text-neutral-600">{en ? "Soon" : "Pronto"}</span>}
             </button>
           );
         })}
 
         <button
           disabled
-          title="Carga personalizada disponible al conectar servidor/archivo DEM"
+          title={en ? "Custom upload available when connecting a DEM file/server" : "Carga personalizada disponible al conectar servidor/archivo DEM"}
           className="mt-1 cursor-not-allowed rounded border border-dashed border-neutral-800 px-2.5 py-1.5 text-left text-xs text-neutral-600"
         >
           Custom Coords...

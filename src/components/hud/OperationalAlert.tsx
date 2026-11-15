@@ -7,6 +7,8 @@ import { useMissionStore } from "@/store/useMissionStore";
 export default function OperationalAlert() {
   const delayHours = useMissionStore((s) => s.delayHours);
   const vehicleId = useMissionStore((s) => s.vehicleId);
+  const lang = useMissionStore((s) => s.lang);
+  const en = lang === "en";
   const veh = findVehicle(vehicleId);
   const nominal = useScenario(0);
   const crisis = useScenario(delayHours);
@@ -21,28 +23,36 @@ export default function OperationalAlert() {
   const crisisDarkH = crisis.occ.sun ? crisis.sunWindow.msToChange / 3.6e6 : 0;
   const freezes = crisis.occ.sun && crisisDarkH > veh.maxDarkHours;
 
-  let title = "OPERACIÓN NOMINAL";
-  let detail = `Con un retraso de ${delayHours}h, el sitio mantiene luz solar y enlace directo con la Tierra.`;
+  let title = en ? "NOMINAL OPERATION" : "OPERACIÓN NOMINAL";
+  let detail = en
+    ? `With a +${delayHours}h launch delay, the site maintains sunlight and direct Earth link.`
+    : `Con un retraso de ${delayHours}h, el sitio mantiene luz solar y enlace directo con la Tierra.`;
   let tone: "danger" | "warn" | "safe" = "safe";
 
   if (delayDegrades) {
     tone = "danger";
-    title = "¡ADVERTENCIA CRÍTICA!";
+    title = en ? "CRITICAL WARNING!" : "¡ADVERTENCIA CRÍTICA!";
     const losses = [
-      crisisLostSun ? "visibilidad solar" : "",
-      crisisLostEarth ? "enlace directo con la Tierra" : "",
+      crisisLostSun ? (en ? "solar visibility" : "visibilidad solar") : "",
+      crisisLostEarth ? (en ? "direct Earth link" : "enlace directo con la Tierra") : "",
     ]
       .filter(Boolean)
-      .join(" y ");
-    detail = `El retraso de ${delayHours}h en el lanzamiento causa pérdida de ${losses} por oclusión del relieve local.`;
+      .join(en ? " and " : " y ");
+    detail = en
+      ? `A ${delayHours}h launch delay causes loss of ${losses} due to local terrain occlusion.`
+      : `El retraso de ${delayHours}h en el lanzamiento causa pérdida de ${losses} por oclusión del relieve local.`;
   } else if (bothBad) {
     tone = "warn";
-    title = "SITIO EN OCLUSIÓN";
-    detail = "Tanto la ventana nominal como la retrasada presentan bloqueo por el horizonte topográfico.";
+    title = en ? "SITE OCCLUDED" : "SITIO EN OCLUSIÓN";
+    detail = en
+      ? "Both nominal and delayed windows experience blockage by the topographic horizon."
+      : "Tanto la ventana nominal como la retrasada presentan bloqueo por el horizonte topográfico.";
   } else if (!nominalOk && !crisis.occ.any) {
     tone = "safe";
-    title = `VENTANA FAVORABLE (+${delayHours}H)`;
-    detail = `El retraso de ${delayHours}h saca al sitio de la oclusión inicial y recupera visibilidad completa.`;
+    title = en ? `FAVORABLE WINDOW (+${delayHours}H)` : `VENTANA FAVORABLE (+${delayHours}H)`;
+    detail = en
+      ? `The ${delayHours}h delay shifts the site out of initial occlusion and restores full visibility.`
+      : `El retraso de ${delayHours}h saca al sitio de la oclusión inicial y recupera visibilidad completa.`;
   }
 
   const boxClass =
@@ -62,7 +72,7 @@ export default function OperationalAlert() {
   return (
     <div className="rounded-md border border-neutral-800 bg-[#161616] p-3 text-xs">
       <div className="mb-2 text-[10px] font-semibold tracking-[0.14em] text-neutral-400">
-        ALERTAS OPERACIONALES
+        {en ? "OPERATIONAL ALERTS" : "ALERTAS OPERACIONALES"}
       </div>
 
       <div role="alert" className={`rounded border p-3 text-center ${boxClass}`}>
@@ -70,7 +80,9 @@ export default function OperationalAlert() {
         <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-300">{detail}</p>
         {freezes && (
           <div className="mt-2 rounded border border-rose-500/50 bg-rose-950/60 px-2 py-1 font-mono text-[10px] font-semibold text-rose-300">
-            ❄ {veh.name}: sombra supera su límite térmico de {veh.maxDarkHours}h
+            {en
+              ? `❄ ${veh.name}: shadow exceeds its ${veh.maxDarkHours}h thermal limit`
+              : `❄ ${veh.name}: sombra supera su límite térmico de ${veh.maxDarkHours}h`}
           </div>
         )}
       </div>

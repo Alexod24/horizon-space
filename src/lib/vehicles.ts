@@ -9,6 +9,7 @@ export interface LunarVehicle {
   maxDarkHours: number;
   image?: string;
   summary: string;
+  summaryEn: string;
 }
 
 export const DEFAULT_VEHICLE: LunarVehicle = {
@@ -19,6 +20,7 @@ export const DEFAULT_VEHICLE: LunarVehicle = {
   heightM: 2.0,
   maxDarkHours: 48,
   summary: "Parámetros base de referencia (mástil 2.0 m, límite 48 h en sombra).",
+  summaryEn: "Baseline reference parameters (2.0 m mast, 48 h shadow limit).",
 };
 
 export const VEHICLES: LunarVehicle[] = [
@@ -31,6 +33,7 @@ export const VEHICLES: LunarVehicle[] = [
     maxDarkHours: 50,
     image: "/vehicles/viper.jpg",
     summary: "Diseñado para cazar hielo en Shackleton; sobrevive ~50 h en sombra.",
+    summaryEn: "Designed to prospect water ice near Shackleton; survives ~50 h in shadow.",
   },
   {
     id: "nova-c",
@@ -41,6 +44,7 @@ export const VEHICLES: LunarVehicle[] = [
     maxDarkHours: 24,
     image: "/vehicles/nova-c.jpg",
     summary: "Módulo alto (4.3 m) con paneles laterales; ~24 h de batería sin sol.",
+    summaryEn: "Tall lander (4.3 m) with side solar arrays; ~24 h battery without sunlight.",
   },
   {
     id: "chandrayaan-3",
@@ -51,6 +55,7 @@ export const VEHICLES: LunarVehicle[] = [
     maxDarkHours: 14,
     image: "/vehicles/chandrayaan-3.jpg",
     summary: "Primer aterrizaje cerca del Polo Sur; se congeló al caer la noche lunar (~14 h).",
+    summaryEn: "First South Pole region landing; froze as lunar night fell (~14 h).",
   },
   {
     id: "artemis-ltv",
@@ -61,6 +66,7 @@ export const VEHICLES: LunarVehicle[] = [
     maxDarkHours: 100,
     image: "/vehicles/artemis-ltv.jpg",
     summary: "Prototipo de vehículo lunar de largo alcance; ~100 h de autonomía térmica.",
+    summaryEn: "Long-range lunar terrain vehicle prototype; ~100 h thermal autonomy.",
   },
 ];
 
