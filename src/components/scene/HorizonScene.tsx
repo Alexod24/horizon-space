@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { type ComponentRef, useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Html, Line, OrbitControls } from "@react-three/drei";
-import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import * as THREE from "three";
 import { sampleOrbital } from "@/lib/engine/data";
 import { findImpactDistance, maskHorizonAt, sampleHeight, type AzEl, type TerrainMatrix } from "@/lib/engine/occlusion";
@@ -343,7 +342,7 @@ function SiteMarker() {
   );
 }
 
-function KeyboardPan({ controlsRef }: { controlsRef: React.RefObject<OrbitControlsImpl | null> }) {
+function KeyboardPan({ controlsRef }: { controlsRef: React.RefObject<ComponentRef<typeof OrbitControls> | null> }) {
   const keys = useRef<Record<string, boolean>>({});
   const fwd = useMemo(() => new THREE.Vector3(), []);
   const right = useMemo(() => new THREE.Vector3(), []);
@@ -393,7 +392,7 @@ function KeyboardPan({ controlsRef }: { controlsRef: React.RefObject<OrbitContro
 }
 
 function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOffsetHours?: number }) {
-  const controlsRef = useRef<OrbitControlsImpl | null>(null);
+  const controlsRef = useRef<ComponentRef<typeof OrbitControls> | null>(null);
   const data = useMissionStore((s) => s.data)!;
   const isolatePole = useMissionStore((s) => s.isolatePole);
   const landingSite = useMissionStore((s) => s.landingSite);
