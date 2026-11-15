@@ -1,0 +1,12 @@
+node_modules
+.next
+next-env.d.ts
+*.tsbuildinfo
+
+# raw DEMs are large; keep them out of git
+data/raw/*.IMG
+data/raw/*.img
+data/raw/*.LBL
+data/raw/*.tif
+data/raw/*.TIF
+data/raw/*.zip
