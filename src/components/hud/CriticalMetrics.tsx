@@ -31,8 +31,89 @@ function ProgressBar({ pct, color }: { pct: number; color: string }) {
 export function CompactMetricsCard({ offsetHours }: { offsetHours: number }) {
   const sc = useScenario(offsetHours);
   const lang = useMissionStore((s) => s.lang);
+  const advancedHud = useMissionStore((s) => s.advancedHud);
   const en = lang === "en";
   if (!sc) return null;
+
+  const sunOk = !sc.occ.sun;
+  const earthOk = !sc.occ.earth;
+  const viableNow = sunOk && earthOk;
+
+  if (!advancedHud) {
+    return (
+      <div className="shrink-0 rounded-md border border-neutral-800 bg-[#161616] px-3 py-2.5 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {/* Viable status */}
+          <div className="flex items-center gap-2">
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs font-bold ${
+                viableNow
+                  ? "border-emerald-500/60 bg-emerald-950/60 text-emerald-400"
+                  : "border-rose-500/60 bg-rose-950/60 text-rose-400"
+              }`}
+            >
+              {viableNow ? "✓" : "✕"}
+            </span>
+            <div>
+              <div className={`text-xs font-bold ${viableNow ? "text-emerald-400" : "text-rose-400"}`}>
+                {viableNow
+                  ? en
+                    ? "Viable"
+                    : "Viable"
+                  : en
+                    ? "Not Viable"
+                    : "No Viable"}
+              </div>
+              <div className="text-[10px] text-neutral-400">
+                {viableNow
+                  ? en
+                    ? "Safe landing window"
+                    : "Aterrizaje seguro"
+                  : !sunOk && !earthOk
+                    ? en
+                      ? "In shadow & no signal"
+                      : "En sombra y sin señal"
+                    : !sunOk
+                      ? en
+                        ? "Blocked by crater shadow"
+                        : "Bloqueado por sombra"
+                      : en
+                        ? "Earth signal blocked"
+                        : "Sin señal con la Tierra"}
+              </div>
+            </div>
+          </div>
+
+          {/* Sun + Earth simple contact pills */}
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+                sunOk
+                  ? "border-emerald-500/40 bg-emerald-950/30 text-emerald-300"
+                  : "border-rose-500/50 bg-rose-950/40 text-rose-300"
+              }`}
+            >
+              <span aria-hidden="true">☀</span>
+              <span>{en ? "Sun:" : "Sol:"}</span>
+              <strong>{sunOk ? "✓" : "✕"}</strong>
+            </div>
+
+            <div
+              className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+                earthOk
+                  ? "border-emerald-500/40 bg-emerald-950/30 text-emerald-300"
+                  : "border-rose-500/50 bg-rose-950/40 text-rose-300"
+              }`}
+            >
+              <span aria-hidden="true">🌍</span>
+              <span>{en ? "Earth:" : "Tierra:"}</span>
+              <strong>{earthOk ? "✓" : "✕"}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const sunPct = sc.sunWindow.visible
     ? Math.min((sc.sunWindow.msToChange / (7 * 86_400_000)) * 100, 100)
@@ -101,8 +182,13 @@ export function CompactMetricsCard({ offsetHours }: { offsetHours: number }) {
 export function DetailedMetricsCards({ offsetHours }: { offsetHours: number }) {
   const sc = useScenario(offsetHours);
   const lang = useMissionStore((s) => s.lang);
+  const advancedHud = useMissionStore((s) => s.advancedHud);
   const en = lang === "en";
   if (!sc) return null;
+
+  if (!advancedHud) {
+    return <CompactMetricsCard offsetHours={offsetHours} />;
+  }
 
   const sunPct = sc.sunWindow.visible
     ? Math.min((sc.sunWindow.msToChange / (7 * 86_400_000)) * 100, 100)

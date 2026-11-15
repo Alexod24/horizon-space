@@ -75,3 +75,188 @@ export function findNextCrisis(v: Visibility, from: number, delaySteps: number):
   }
   return -1;
 }
+
+export type ViabilityTier = "OPTIMAL" | "MARGINAL" | "CRITICAL";
+
+export interface MissionViability {
+  /** Overall Mission Viability Score (0 - 100). */
+  score: number;
+  tier: ViabilityTier;
+  /** Solar availability over mission duration (0 - 100%). */
+  solarPct: number;
+  /** Direct Earth LOS over mission duration (0 - 100%). */
+  earthPct: number;
+  /** Delay resilience score over mission duration at +delayHours (0 - 100%). */
+  delayResiliencePct: number;
+  /** True if the delayed touchdown lands in occlusion (Sun or Earth blocked). */
+  delayOccluded: boolean;
+  /** True if the delayed touchdown shadow exceeds lander battery limit. */
+  delayThermalFreeze: boolean;
+  /** Hours until first solar occlusion on nominal touchdown (Infinity if none in 7d). */
+  firstSolarDropHours: number | null;
+  /** Recommended optimal touchdown index, launchMs, and viability score. */
+  optimal: {
+    touchdownIndex: number;
+    launchMs: number;
+    touchdownMs: number;
+    deltaDays: number;
+    score: number;
+  } | null;
+}
+
+/** Fast O(1) evaluation of a single touchdown index using precomputed prefix sums. */
+export function scoreTouchdownIndex(
+  v: Visibility,
+  idx: number,
+  delaySteps: number,
+  missionSteps: number,
+  maxDarkSteps: number,
+): {
+  score: number;
+  solarPct: number;
+  earthPct: number;
+  delayResiliencePct: number;
+  delayOccluded: boolean;
+  delayThermalFreeze: boolean;
+  bothTouchdownsClean: boolean;
+} {
+  const safeIdx = Math.min(Math.max(idx, 0), v.n - 1);
+  const crisisIdx = Math.min(safeIdx + delaySteps, v.n - 1);
+
+  const solarFrac = fractionVisible(v.sunPrefix, safeIdx, missionSteps);
+  const earthFrac = fractionVisible(v.earthPrefix, safeIdx, missionSteps);
+
+  const delSolarFrac = fractionVisible(v.sunPrefix, crisisIdx, missionSteps);
+  const delEarthFrac = fractionVisible(v.earthPrefix, crisisIdx, missionSteps);
+
+  const nomTouchdownOk = v.sunVis[safeIdx] === 1 && v.earthVis[safeIdx] === 1;
+  const delTouchdownOk = v.sunVis[crisisIdx] === 1 && v.earthVis[crisisIdx] === 1;
+  const delayOccluded = !delTouchdownOk;
+
+  const crisisDarkSteps = v.sunVis[crisisIdx] === 0 ? v.sunNext[crisisIdx] - crisisIdx : 0;
+  const delayThermalFreeze = v.sunVis[crisisIdx] === 0 && crisisDarkSteps > maxDarkSteps;
+
+  let resilienceFrac = 0.6 * delSolarFrac + 0.4 * delEarthFrac;
+  if (delayThermalFreeze) {
+    resilienceFrac = 0;
+  } else if (delayOccluded) {
+    resilienceFrac *= 0.35;
+  }
+
+  let rawScore = 50 * solarFrac + 30 * earthFrac + 20 * resilienceFrac;
+  if (!nomTouchdownOk) {
+    rawScore *= 0.65;
+  }
+
+  const score = Math.round(Math.min(100, Math.max(0, rawScore)) * 10) / 10;
+  return {
+    score,
+    solarPct: Math.round(solarFrac * 1000) / 10,
+    earthPct: Math.round(earthFrac * 1000) / 10,
+    delayResiliencePct: Math.round(resilienceFrac * 1000) / 10,
+    delayOccluded,
+    delayThermalFreeze,
+    bothTouchdownsClean: nomTouchdownOk && delTouchdownOk && !delayThermalFreeze,
+  };
+}
+
+export function calculateMissionViability(
+  tl: OrbitalTimeline,
+  v: Visibility,
+  launchMs: number,
+  transitDays: number,
+  delayHours: number,
+  maxDarkHours: number,
+  missionDays = 7,
+): MissionViability {
+  const DAY_MS = 86_400_000;
+  const HOUR_MS = 3_600_000;
+  const transitMs = transitDays * DAY_MS;
+  const touchdownMs = launchMs + transitMs;
+  const idx = indexAt(tl, touchdownMs);
+  const delaySteps = Math.round((delayHours * HOUR_MS) / tl.stepMs);
+  const missionSteps = Math.round((missionDays * DAY_MS) / tl.stepMs);
+  const maxDarkSteps = Math.round((maxDarkHours * HOUR_MS) / tl.stepMs);
+
+  const cur = scoreTouchdownIndex(v, idx, delaySteps, missionSteps, maxDarkSteps);
+
+  let tier: ViabilityTier = "CRITICAL";
+  if (cur.score >= 85 && cur.bothTouchdownsClean) {
+    tier = "OPTIMAL";
+  } else if (cur.score >= 60 && !cur.delayThermalFreeze) {
+    tier = "MARGINAL";
+  }
+
+  let firstSolarDropHours: number | null = null;
+  if (v.sunVis[idx] === 1) {
+    const nextDrop = v.sunNext[idx] - idx;
+    if (nextDrop < missionSteps) {
+      firstSolarDropHours = Math.round((nextDrop * tl.stepMs) / HOUR_MS);
+    }
+  } else {
+    firstSolarDropHours = 0;
+  }
+
+  // Search +/- 30 days around current touchdown index for an optimal window
+  const minIdx = Math.ceil(transitMs / tl.stepMs);
+  const maxIdx = Math.max(minIdx, v.n - delaySteps - missionSteps - 1);
+  const searchRadiusSteps = Math.round((30 * DAY_MS) / tl.stepMs);
+  const lo = Math.max(minIdx, idx - Math.round((7 * DAY_MS) / tl.stepMs));
+  const hi = Math.min(maxIdx, idx + searchRadiusSteps);
+
+  let bestIdx = idx;
+  let bestScore = cur.score;
+  let bestClean = cur.bothTouchdownsClean;
+
+  const evaluateCandidate = (i: number) => {
+    const c = scoreTouchdownIndex(v, i, delaySteps, missionSteps, maxDarkSteps);
+    const betterClean = c.bothTouchdownsClean && !bestClean;
+    const sameClean = c.bothTouchdownsClean === bestClean;
+    if (betterClean || (sameClean && c.score > bestScore + 0.4)) {
+      bestIdx = i;
+      bestScore = c.score;
+      bestClean = c.bothTouchdownsClean;
+    } else if (sameClean && Math.abs(c.score - bestScore) <= 0.4 && c.score > cur.score + 1) {
+      if (Math.abs(i - idx) < Math.abs(bestIdx - idx)) {
+        bestIdx = i;
+        bestScore = c.score;
+      }
+    }
+  };
+
+  for (let i = lo; i <= hi; i += 2) {
+    evaluateCandidate(i);
+  }
+  // If local 30-day window didn't find an OPTIMAL date, scan full timeline coarsely
+  if (bestScore < 85 || !bestClean) {
+    for (let i = minIdx; i <= maxIdx; i += 16) {
+      evaluateCandidate(i);
+    }
+  }
+
+  let optimal: MissionViability["optimal"] = null;
+  if (bestIdx !== idx && (bestScore > cur.score + 1.5 || (bestClean && !cur.bothTouchdownsClean))) {
+    const optTouchdownMs = tl.t0Ms + bestIdx * tl.stepMs;
+    const optLaunchMs = optTouchdownMs - transitMs;
+    const deltaDays = Math.round(((optLaunchMs - launchMs) / DAY_MS) * 10) / 10;
+    optimal = {
+      touchdownIndex: bestIdx,
+      launchMs: optLaunchMs,
+      touchdownMs: optTouchdownMs,
+      deltaDays,
+      score: bestScore,
+    };
+  }
+
+  return {
+    score: cur.score,
+    tier,
+    solarPct: cur.solarPct,
+    earthPct: cur.earthPct,
+    delayResiliencePct: cur.delayResiliencePct,
+    delayOccluded: cur.delayOccluded,
+    delayThermalFreeze: cur.delayThermalFreeze,
+    firstSolarDropHours,
+    optimal,
+  };
+}

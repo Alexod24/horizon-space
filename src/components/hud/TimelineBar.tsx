@@ -36,6 +36,7 @@ export default function TimelineBar() {
   const en = lang === "en";
   const playing = useMissionStore((s) => s.playing);
   const speed = useMissionStore((s) => s.speed);
+  const advancedHud = useMissionStore((s) => s.advancedHud);
   const setTime = useMissionStore((s) => s.setTime);
   const setTransitDays = useMissionStore((s) => s.setTransitDays);
   const setCompare = useMissionStore((s) => s.setCompare);
@@ -43,6 +44,7 @@ export default function TimelineBar() {
   const setIsolatePole = useMissionStore((s) => s.setIsolatePole);
   const setPlaying = useMissionStore((s) => s.setPlaying);
   const setSpeed = useMissionStore((s) => s.setSpeed);
+  const setAdvancedHud = useMissionStore((s) => s.setAdvancedHud);
 
   useEffect(() => {
     if (!playing || !data) return;
@@ -94,60 +96,64 @@ export default function TimelineBar() {
         >
           {playing ? "❚❚" : "▶"}
         </button>
-        <div className="hidden items-center gap-1 sm:flex">
-          {SPEEDS.map((s) => (
-            <button
-              key={s}
-              onClick={() => setSpeed(s)}
-              className={`rounded border px-1.5 py-1 font-mono text-[10px] transition ${speed === s
-                ? "border-white bg-white font-semibold text-black"
-                : "border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
-                }`}
-            >
-              {s}h/s
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Compact Launch Date (T-0) + Transit Profile Selectors */}
-      <div className="hidden items-center gap-2 xl:flex">
-        <label className="flex items-center gap-1.5 rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-[10px]">
-          <span className="font-semibold tracking-wider text-neutral-400">
-            {en ? "LAUNCH (T-0):" : "LANZAMIENTO (T-0):"}
-          </span>
-          <input
-            type="date"
-            min={toDateInputUTC(t0Ms)}
-            max={toDateInputUTC(maxMs)}
-            value={toDateInputUTC(timeMs)}
-            onChange={(e) => {
-              const parsed = fromDateInputPreserveTimeUTC(e.target.value, timeMs);
-              if (parsed !== null) setTime(parsed);
-            }}
-            aria-label={en ? "Launch date (T-0)" : "Fecha de lanzamiento (T-0)"}
-            className="bg-transparent font-mono text-[11px] font-semibold text-white outline-none"
-          />
-        </label>
-
-        <label className="flex items-center gap-1.5 rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-[10px]">
-          <span className="font-semibold tracking-wider text-neutral-400">
-            {en ? "TRANSIT:" : "TRÁNSITO:"}
-          </span>
-          <select
-            value={transitDays}
-            onChange={(e) => setTransitDays(Number(e.target.value))}
-            aria-label={en ? "Transit profile" : "Perfil de tránsito"}
-            className="cursor-pointer bg-neutral-900 font-mono text-[11px] font-semibold text-white outline-none"
-          >
-            {TRANSIT_PROFILES.map((tp) => (
-              <option key={tp.days} value={tp.days} className="bg-neutral-900 text-white">
-                {en ? tp.labelEn : tp.labelEs}
-              </option>
+        {advancedHud && (
+          <div className="hidden items-center gap-1 sm:flex">
+            {SPEEDS.map((s) => (
+              <button
+                key={s}
+                onClick={() => setSpeed(s)}
+                className={`rounded border px-1.5 py-1 font-mono text-[10px] transition ${speed === s
+                  ? "border-white bg-white font-semibold text-black"
+                  : "border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
+                  }`}
+              >
+                {s}h/s
+              </button>
             ))}
-          </select>
-        </label>
+          </div>
+        )}
       </div>
+
+      {/* Compact Launch Date (T-0) + Transit Profile Selectors (Advanced mode) */}
+      {advancedHud && (
+        <div className="hidden items-center gap-2 xl:flex">
+          <label className="flex items-center gap-1.5 rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-[10px]">
+            <span className="font-semibold tracking-wider text-neutral-400">
+              {en ? "LAUNCH (T-0):" : "LANZAMIENTO (T-0):"}
+            </span>
+            <input
+              type="date"
+              min={toDateInputUTC(t0Ms)}
+              max={toDateInputUTC(maxMs)}
+              value={toDateInputUTC(timeMs)}
+              onChange={(e) => {
+                const parsed = fromDateInputPreserveTimeUTC(e.target.value, timeMs);
+                if (parsed !== null) setTime(parsed);
+              }}
+              aria-label={en ? "Launch date (T-0)" : "Fecha de lanzamiento (T-0)"}
+              className="bg-transparent font-mono text-[11px] font-semibold text-white outline-none"
+            />
+          </label>
+
+          <label className="flex items-center gap-1.5 rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-[10px]">
+            <span className="font-semibold tracking-wider text-neutral-400">
+              {en ? "TRANSIT:" : "TRÁNSITO:"}
+            </span>
+            <select
+              value={transitDays}
+              onChange={(e) => setTransitDays(Number(e.target.value))}
+              aria-label={en ? "Transit profile" : "Perfil de tránsito"}
+              className="cursor-pointer bg-neutral-900 font-mono text-[11px] font-semibold text-white outline-none"
+            >
+              {TRANSIT_PROFILES.map((tp) => (
+                <option key={tp.days} value={tp.days} className="bg-neutral-900 text-white">
+                  {en ? tp.labelEn : tp.labelEs}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
 
       {/* Center Slider + Launch -> Touchdown Date */}
       <div className="flex min-w-[240px] flex-1 flex-col items-center">
@@ -188,38 +194,42 @@ export default function TimelineBar() {
         </div>
       </div>
 
-      {/* Right actions: Terrain filter + Isolate Pole + Jump to crisis + Compare toggle */}
+      {/* Right actions: Terrain filter + Isolate Pole + Jump to crisis + Compare toggle + Advanced toggle */}
       <div className="flex items-center gap-2">
-        <div className="hidden items-center overflow-hidden rounded border border-neutral-800 bg-neutral-900 text-[10px] sm:flex">
-          <button
-            type="button"
-            onClick={() => setTerrainMode("realistic")}
-            className={`px-2 py-1 font-medium transition ${terrainMode === "realistic" ? "bg-white text-black" : "text-neutral-400 hover:text-neutral-200"
-              }`}
-          >
-            {en ? "Realistic" : "Realista"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setTerrainMode("tactical")}
-            className={`px-2 py-1 font-medium transition ${terrainMode === "tactical" ? "bg-white text-black" : "text-neutral-400 hover:text-neutral-200"
-              }`}
-          >
-            {en ? "Tactical" : "Táctico"}
-          </button>
-        </div>
+        {advancedHud && (
+          <>
+            <div className="hidden items-center overflow-hidden rounded border border-neutral-800 bg-neutral-900 text-[10px] sm:flex">
+              <button
+                type="button"
+                onClick={() => setTerrainMode("realistic")}
+                className={`px-2 py-1 font-medium transition ${terrainMode === "realistic" ? "bg-white text-black" : "text-neutral-400 hover:text-neutral-200"
+                  }`}
+              >
+                {en ? "Realistic" : "Realista"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTerrainMode("tactical")}
+                className={`px-2 py-1 font-medium transition ${terrainMode === "tactical" ? "bg-white text-black" : "text-neutral-400 hover:text-neutral-200"
+                  }`}
+              >
+                {en ? "Tactical" : "Táctico"}
+              </button>
+            </div>
 
-        <button
-          type="button"
-          onClick={() => setIsolatePole(!isolatePole)}
-          title={en ? "Show South Pole area only (15 km radius)" : "Mostrar únicamente el área del Polo Sur (radio 15 km)"}
-          className={`hidden rounded border px-2 py-1 text-[10px] font-medium transition sm:inline-block ${isolatePole
-            ? "border-white bg-white text-black"
-            : "border-neutral-800 bg-neutral-900 text-neutral-300 hover:border-neutral-600"
-            }`}
-        >
-          {isolatePole ? (en ? "South Pole Only ✓" : "Solo Polo Sur ✓") : (en ? "South Pole Only" : "Solo Polo Sur")}
-        </button>
+            <button
+              type="button"
+              onClick={() => setIsolatePole(!isolatePole)}
+              title={en ? "Show South Pole area only (15 km radius)" : "Mostrar únicamente el área del Polo Sur (radio 15 km)"}
+              className={`hidden rounded border px-2 py-1 text-[10px] font-medium transition sm:inline-block ${isolatePole
+                ? "border-white bg-white text-black"
+                : "border-neutral-800 bg-neutral-900 text-neutral-300 hover:border-neutral-600"
+                }`}
+            >
+              {isolatePole ? (en ? "South Pole Only ✓" : "Solo Polo Sur ✓") : (en ? "South Pole Only" : "Solo Polo Sur")}
+            </button>
+          </>
+        )}
 
         <button
           onClick={jumpToNextCrisis}
@@ -245,6 +255,18 @@ export default function TimelineBar() {
             />
           </button>
         </label>
+
+        <button
+          type="button"
+          onClick={() => setAdvancedHud(!advancedHud)}
+          className={`rounded border px-2.5 py-1 text-[11px] font-medium transition ${
+            advancedHud
+              ? "border-white bg-white font-semibold text-black"
+              : "border-neutral-700 bg-neutral-900 text-neutral-200 hover:border-neutral-500 hover:bg-neutral-800"
+          }`}
+        >
+          ⚙ {advancedHud ? (en ? "Simple View" : "Vista Simple") : (en ? "Advanced" : "Avanzado")}
+        </button>
       </div>
     </div>
   );

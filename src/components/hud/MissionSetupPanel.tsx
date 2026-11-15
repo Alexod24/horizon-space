@@ -1,5 +1,6 @@
 "use client";
 
+import { ViabilityVerdictCard } from "@/components/hud/OperationalAlert";
 import { findNextCrisis, indexAt } from "@/lib/engine/timeline";
 import { formatDate, formatShortDay } from "@/lib/scene";
 import { DEFAULT_VEHICLE, VEHICLES } from "@/lib/vehicles";
@@ -272,6 +273,9 @@ export default function MissionSetupPanel() {
             ))}
           </div>
         </div>
+
+        {/* 5. Mission Viability Verdict & AI Recommendation */}
+        <ViabilityVerdictCard />
       </div>
 
       <button

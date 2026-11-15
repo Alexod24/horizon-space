@@ -66,8 +66,10 @@ interface MissionState {
   data: MissionData | null;
   siteId: string;
   vehicleId: string;
-  /** Nominal Earth launch instant T-0 (UTC ms). */
+  /** Nominal Earth launch instant T-0 (UTC ms) currently displayed. */
   timeMs: number;
+  /** Anchor launch instant T-0 (UTC ms) for the 7-day guaranteed mission window. */
+  plannedLaunchMs: number;
   /** Earth-to-Moon transit duration in days (e.g. 7, 14, 45). */
   transitDays: number;
   delayHours: number;
@@ -80,6 +82,8 @@ interface MissionState {
   selectedLandmarkId: string | null;
   enteredApp: boolean;
   missionStarted: boolean;
+  /** False by default so Phase 2 starts in clean/simple mode for general audiences. */
+  advancedHud: boolean;
   /** Landing site offset in km from zone centre (x = East, y = North). */
   landingSite: { x: number; y: number; elevationM: number };
   playing: boolean;
@@ -89,7 +93,8 @@ interface MissionState {
   outOfBoundsKm: number | null;
   setData: (d: MissionData, startMs: number) => void;
   setError: (e: string) => void;
-  setTime: (ms: number) => void;
+  /** Sets current simulation timeMs; if anchor=true (default), also anchors the 7-day mission window. */
+  setTime: (ms: number, anchor?: boolean) => void;
   setTransitDays: (days: number) => void;
   setDelay: (h: number) => void;
   setCompare: (c: boolean) => void;
@@ -101,6 +106,7 @@ interface MissionState {
   setSelectedLandmarkId: (id: string | null) => void;
   setEnteredApp: (v: boolean) => void;
   setMissionStarted: (v: boolean) => void;
+  setAdvancedHud: (v: boolean) => void;
   setLandingSite: (xKm: number, yKm: number) => void;
   setVehicle: (id: string) => void;
   setPlaying: (p: boolean) => void;
@@ -114,6 +120,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   siteId: "shackleton",
   vehicleId: "default",
   timeMs: 0,
+  plannedLaunchMs: 0,
   transitDays: 7,
   delayHours: 48,
   compare: true,
@@ -125,9 +132,10 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   selectedLandmarkId: null,
   enteredApp: false,
   missionStarted: false,
+  advancedHud: false,
   landingSite: { x: 0, y: 0, elevationM: 0 },
   playing: false,
-  speed: 24,
+  speed: 6,
   outOfBoundsKm: null,
   setData: (data, startMs) => {
     const h0 = sampleHeight(data.terrain, 0, 0);
@@ -135,16 +143,18 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       data,
       status: "ready",
       timeMs: startMs,
+      plannedLaunchMs: startMs,
       landingSite: { x: 0, y: 0, elevationM: Number.isNaN(h0) ? 0 : h0 },
     });
   },
   setError: (error) => set({ status: "error", error }),
-  setTime: (timeMs) =>
+  setTime: (timeMs, anchor = true) =>
     set((s) => {
-      if (!s.data) return { timeMs };
+      if (!s.data) return anchor ? { timeMs, plannedLaunchMs: timeMs } : { timeMs };
       const { t0Ms, t1Ms } = s.data.timeline;
       const maxLaunchMs = t1Ms - s.transitDays * DAY_MS - s.delayHours * HOUR_MS;
-      return { timeMs: Math.min(Math.max(timeMs, t0Ms), maxLaunchMs) };
+      const clamped = Math.min(Math.max(timeMs, t0Ms), maxLaunchMs);
+      return anchor ? { timeMs: clamped, plannedLaunchMs: clamped } : { timeMs: clamped };
     }),
   setTransitDays: (transitDays) =>
     set((s) => {
@@ -175,6 +185,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   setSelectedLandmarkId: (selectedLandmarkId) => set({ selectedLandmarkId }),
   setEnteredApp: (enteredApp) => set({ enteredApp }),
   setMissionStarted: (missionStarted) => set({ missionStarted }),
+  setAdvancedHud: (advancedHud) => set({ advancedHud }),
   setLandingSite: (xKm, yKm) => {
     const d = get().data;
     if (!d) return;

@@ -44,6 +44,7 @@ function ViewportCard({
   const selectedLandmarkId = useMissionStore((s) => s.selectedLandmarkId);
   const setSelectedLandmarkId = useMissionStore((s) => s.setSelectedLandmarkId);
   const missionStarted = useMissionStore((s) => s.missionStarted);
+  const advancedHud = useMissionStore((s) => s.advancedHud);
   const triggerCenter = useMissionStore((s) => s.triggerCenter);
   const lang = useMissionStore((s) => s.lang);
   const en = lang === "en";
@@ -92,9 +93,11 @@ function ViewportCard({
               </span>
             </span>
           </div>
-          <div className="font-mono text-[9px] text-neutral-500 sm:text-[10px]">
-            COORDS: {coords} · {en ? "DOME" : "CÚPULA"} R = 15 KM
-          </div>
+          {(!missionStarted || advancedHud) && (
+            <div className="font-mono text-[9px] text-neutral-500 sm:text-[10px]">
+              COORDS: {coords} · {en ? "DOME" : "CÚPULA"} R = 15 KM
+            </div>
+          )}
         </div>
 
         <div className="pointer-events-auto flex flex-wrap items-center gap-1.5">
@@ -224,13 +227,15 @@ function ViewportCard({
         </div>
       )}
 
-      {/* Bottom bar */}
-      <div className="pointer-events-none absolute bottom-2.5 left-3 right-3 z-10 flex items-center justify-between text-[10px] text-neutral-500">
-        <span className="font-mono">COORDS: {coords}</span>
-        <span>
-          Source: {terrainSource === "lola" ? "LOLA DEM + JPL Horizons" : en ? "Placeholder relief + JPL Horizons" : "Relieve provisional + JPL Horizons"}
-        </span>
-      </div>
+      {/* Bottom bar (shown in Phase 1 or when Advanced Options are active) */}
+      {(!missionStarted || advancedHud) && (
+        <div className="pointer-events-none absolute bottom-2.5 left-3 right-3 z-10 flex items-center justify-between text-[10px] text-neutral-500">
+          <span className="font-mono">COORDS: {coords}</span>
+          <span>
+            Source: {terrainSource === "lola" ? "LOLA DEM + JPL Horizons" : en ? "Placeholder relief + JPL Horizons" : "Relieve provisional + JPL Horizons"}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
