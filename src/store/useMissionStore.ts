@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { OrbitalTimeline } from "@/lib/engine/data";
 import { buildHorizonMask, sampleHeight, type TerrainMatrix } from "@/lib/engine/occlusion";
 import { computeVisibility, type Visibility } from "@/lib/engine/timeline";
+import { VEHICLES, findVehicle } from "@/lib/vehicles";
 
 export interface MissionData {
   timeline: OrbitalTimeline;
@@ -20,6 +21,7 @@ interface MissionState {
   error?: string;
   data: MissionData | null;
   siteId: string;
+  vehicleId: string;
   /** Nominal landing instant (UTC ms). */
   timeMs: number;
   delayHours: number;
@@ -43,6 +45,7 @@ interface MissionState {
   setIsolatePole: (v: boolean) => void;
   setMissionStarted: (v: boolean) => void;
   setLandingSite: (xKm: number, yKm: number) => void;
+  setVehicle: (id: string) => void;
   setPlaying: (p: boolean) => void;
   setSpeed: (s: number) => void;
   setOutOfBoundsKm: (km: number | null) => void;
@@ -52,6 +55,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   status: "loading",
   data: null,
   siteId: "shackleton",
+  vehicleId: "default",
   timeMs: 0,
   delayHours: 48,
   compare: true,
@@ -95,7 +99,8 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     const oy = yKm * 1000;
     const h = sampleHeight(d.terrain, ox, oy);
     const elevationM = Number.isNaN(h) ? 0 : h;
-    const opts = { observerX: ox, observerY: oy, observerHeight: 2 };
+    const veh = findVehicle(get().vehicleId);
+    const opts = { observerX: ox, observerY: oy, observerHeight: veh.heightM };
     const mask = buildHorizonMask(d.terrain, d.maskStep, opts);
     const vis = computeVisibility(d.timeline, mask, d.maskStep);
     set({
@@ -103,6 +108,19 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       outOfBoundsKm: null,
       data: { ...d, mask, vis },
     });
+  },
+  setVehicle: (vehicleId) => {
+    const d = get().data;
+    const veh = findVehicle(vehicleId);
+    if (!d) {
+      set({ vehicleId });
+      return;
+    }
+    const { x, y } = get().landingSite;
+    const opts = { observerX: x * 1000, observerY: y * 1000, observerHeight: veh.heightM };
+    const mask = buildHorizonMask(d.terrain, d.maskStep, opts);
+    const vis = computeVisibility(d.timeline, mask, d.maskStep);
+    set({ vehicleId, data: { ...d, mask, vis } });
   },
   setPlaying: (playing) => set({ playing }),
   setSpeed: (speed) => set({ speed }),

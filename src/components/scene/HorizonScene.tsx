@@ -7,8 +7,9 @@ import * as THREE from "three";
 import { sampleOrbital } from "@/lib/engine/data";
 import { findImpactDistance, maskHorizonAt, sampleHeight, type AzEl, type TerrainMatrix } from "@/lib/engine/occlusion";
 import { COLORS, DOME_R, TERRAIN_RADIUS, VERT_EXAG, exaggerateEl, skyPoint } from "@/lib/scene";
-import { getEarthTexture, getMoonRegolithTexture, getSunTexture } from "@/lib/textures";
+import { getEarthTexture, getMoonRegolithTexture, getSunCoronaTexture, getSunTexture } from "@/lib/textures";
 import { useScenario, type ScenarioState } from "@/lib/useScenario";
+import { findVehicle } from "@/lib/vehicles";
 import { useMissionStore } from "@/store/useMissionStore";
 
 const H = 3_600_000;
@@ -19,9 +20,9 @@ function buildTerrainGeometry(t: TerrainMatrix, minKm = 0, maxKm = TERRAIN_RADIU
   const uv: number[] = [];
   const col: number[] = [];
   const idx: number[] = [];
-  const lo = new THREE.Color("#2b3648");
-  const mid = new THREE.Color("#6b7788");
-  const hi = new THREE.Color("#b4c0cf");
+  const lo = new THREE.Color("#1f1f1f");
+  const mid = new THREE.Color("#6b6b6b");
+  const hi = new THREE.Color("#d4d4d4");
   const tmp = new THREE.Color();
   const minM = minKm * 1000;
   const maxM = Math.min(maxKm * 1000, ((t.size - 1) / 2) * t.resolution - t.resolution);
@@ -93,7 +94,7 @@ function Terrain({ terrain, contextTerrain }: { terrain: TerrainMatrix; contextT
       </mesh>
       {!realistic && (
         <mesh geometry={innerGeo} position-y={0.015}>
-          <meshBasicMaterial color="#3db8ff" wireframe transparent opacity={0.09} depthWrite={false} />
+          <meshBasicMaterial color="#ffffff" wireframe transparent opacity={0.1} depthWrite={false} />
         </mesh>
       )}
 
@@ -135,21 +136,21 @@ function SkyDome({ mask, maskStep }: { mask: Float32Array; maskStep: number }) {
     <group>
       <mesh>
         <sphereGeometry args={[DOME_R, 64, 24, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshBasicMaterial color="#3db8ff" transparent opacity={0.035} side={THREE.DoubleSide} depthWrite={false} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.025} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
-      <Line points={horizon} color={COLORS.earth} lineWidth={1.5} transparent opacity={0.7} />
+      <Line points={horizon} color="#e5e5e5" lineWidth={1.3} transparent opacity={0.45} />
       {grid.map(({ e, pts }) => (
         <group key={e}>
-          <Line points={pts} color="#9fd6ff" lineWidth={0.6} transparent opacity={0.12} dashed dashSize={0.4} gapSize={0.4} />
+          <Line points={pts} color="#a3a3a3" lineWidth={0.6} transparent opacity={0.14} dashed dashSize={0.4} gapSize={0.4} />
           <Html position={skyPoint(180, e).toArray()} center zIndexRange={[5, 0]}>
-            <span className="pointer-events-none font-mono text-[9px] text-sky-200/40">{e}°</span>
+            <span className="pointer-events-none font-mono text-[9px] text-neutral-400/60">{e}°</span>
           </Html>
         </group>
       ))}
       <Line points={relief} color={COLORS.danger} lineWidth={2.2} />
       {(["N", "E", "S", "O"] as const).map((l, i) => (
         <Html key={l} position={skyPoint(i * 90, 0, DOME_R + 1.2).toArray()} center zIndexRange={[5, 0]}>
-          <span className={`pointer-events-none font-mono text-xs font-bold ${l === "N" ? "text-red-400" : "text-sky-200/60"}`}>{l}</span>
+          <span className={`pointer-events-none font-mono text-xs font-bold ${l === "N" ? "text-red-400" : "text-neutral-400"}`}>{l}</span>
         </Html>
       ))}
     </group>
@@ -229,6 +230,7 @@ function CelestialBody({
   const baseColor = kind === "sun" ? COLORS.sun : COLORS.earth;
   const c = blocked ? COLORS.danger : baseColor;
   const sunMap = useMemo(() => (kind === "sun" ? getSunTexture() : null), [kind]);
+  const sunCoronaMap = useMemo(() => (kind === "sun" ? getSunCoronaTexture() : null), [kind]);
   const earthMap = useMemo(() => (kind === "earth" ? getEarthTexture() : null), [kind]);
 
   const impactPos = useMemo(() => {
@@ -266,21 +268,22 @@ function CelestialBody({
         </mesh>
       ) : kind === "sun" ? (
         <group position={p}>
+          {/* Blinding white-hot solar photosphere */}
           <mesh ref={meshRef}>
-            <sphereGeometry args={[0.55, 28, 28]} />
-            <meshBasicMaterial map={sunMap} color={blocked ? "#ff5a67" : "#ffd27d"} />
+            <sphereGeometry args={[0.42, 28, 28]} />
+            <meshBasicMaterial map={sunMap} color={blocked ? "#ffd2c2" : "#fffcf0"} />
           </mesh>
-          {/* Solar corona halo */}
-          <mesh>
-            <sphereGeometry args={[1.05, 24, 24]} />
-            <meshBasicMaterial
-              color={blocked ? COLORS.danger : "#ff9a3c"}
+          {/* Smooth billboarded corona + diffraction spikes */}
+          <sprite scale={[3.8, 3.8, 1]}>
+            <spriteMaterial
+              map={sunCoronaMap}
+              color={blocked ? "#ff6b6b" : "#ffe6a3"}
               transparent
-              opacity={blocked ? 0.14 : 0.25}
+              opacity={blocked ? 0.55 : 0.95}
               blending={THREE.AdditiveBlending}
               depthWrite={false}
             />
-          </mesh>
+          </sprite>
         </group>
       ) : (
         <group position={p}>
@@ -396,13 +399,15 @@ function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOf
   const data = useMissionStore((s) => s.data)!;
   const isolatePole = useMissionStore((s) => s.isolatePole);
   const landingSite = useMissionStore((s) => s.landingSite);
+  const vehicleId = useMissionStore((s) => s.vehicleId);
+  const veh = findVehicle(vehicleId);
   const sc = useScenario(offsetHours)!;
   const ghost = useScenario(ghostOffsetHours ?? offsetHours);
   const siteY = (landingSite.elevationM / 1000) * VERT_EXAG;
   const siteOrigin = useMemo(() => new THREE.Vector3(landingSite.x, siteY + 0.05, -landingSite.y), [landingSite.x, landingSite.y, siteY]);
   const occOpts = useMemo(
-    () => ({ observerX: landingSite.x * 1000, observerY: landingSite.y * 1000, observerHeight: 2 }),
-    [landingSite.x, landingSite.y],
+    () => ({ observerX: landingSite.x * 1000, observerY: landingSite.y * 1000, observerHeight: veh.heightM }),
+    [landingSite.x, landingSite.y, veh.heightM],
   );
   const sunPos = skyPoint(sc.sun.az, sc.sun.el, 40);
   const earthPos = skyPoint(sc.earth.az, sc.earth.el, 40);
@@ -419,10 +424,10 @@ function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOf
 
   return (
     <>
-      <color attach="background" args={["#03060c"]} />
-      {!isolatePole && <fog attach="fog" args={["#03060c", 34, 78]} />}
-      <ambientLight intensity={0.18} color="#6a8cff" />
-      <hemisphereLight args={["#9cc8ff", "#05070a", 0.25]} />
+      <color attach="background" args={["#0a0a0a"]} />
+      {!isolatePole && <fog attach="fog" args={["#0a0a0a", 34, 78]} />}
+      <ambientLight intensity={0.18} color="#d4d4d4" />
+      <hemisphereLight args={["#e5e5e5", "#0a0a0a", 0.25]} />
       <directionalLight
         position={sunPos}
         intensity={sc.occ.sun ? 0.6 : 2.4}

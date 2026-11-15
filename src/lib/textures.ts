@@ -13,6 +13,7 @@ function mulberry32(seed: number) {
 let moonTex: THREE.CanvasTexture | null = null;
 let earthTex: THREE.CanvasTexture | null = null;
 let sunTex: THREE.CanvasTexture | null = null;
+let sunCoronaTex: THREE.CanvasTexture | null = null;
 
 /** Procedural lunar regolith texture with micro-craters & basaltic grain. */
 export function getMoonRegolithTexture(): THREE.CanvasTexture {
@@ -138,4 +139,49 @@ export function getSunTexture(): THREE.CanvasTexture {
   sunTex = new THREE.CanvasTexture(canvas);
   sunTex.colorSpace = THREE.SRGBColorSpace;
   return sunTex;
+}
+
+/** Smooth radial solar corona + subtle optical diffraction rays (no hard edge). */
+export function getSunCoronaTexture(): THREE.CanvasTexture {
+  if (sunCoronaTex) return sunCoronaTex;
+  const size = 256;
+  const c = size / 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+
+  // Smooth exponential-like radial glow
+  const g = ctx.createRadialGradient(c, c, 2, c, c, c);
+  g.addColorStop(0.0, "rgba(255, 255, 250, 1.0)");
+  g.addColorStop(0.12, "rgba(255, 245, 200, 0.85)");
+  g.addColorStop(0.28, "rgba(255, 200, 100, 0.42)");
+  g.addColorStop(0.55, "rgba(255, 160, 50, 0.12)");
+  g.addColorStop(0.82, "rgba(255, 130, 30, 0.025)");
+  g.addColorStop(1.0, "rgba(0, 0, 0, 0.0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+
+  // Subtle camera lens diffraction spikes
+  ctx.save();
+  ctx.translate(c, c);
+  for (let i = 0; i < 6; i++) {
+    ctx.rotate(Math.PI / 3);
+    const sg = ctx.createLinearGradient(0, 0, c * 0.9, 0);
+    sg.addColorStop(0, "rgba(255, 248, 220, 0.28)");
+    sg.addColorStop(0.4, "rgba(255, 210, 120, 0.08)");
+    sg.addColorStop(1, "rgba(255, 180, 80, 0)");
+    ctx.fillStyle = sg;
+    ctx.beginPath();
+    ctx.moveTo(0, -2.5);
+    ctx.lineTo(c * 0.9, 0);
+    ctx.lineTo(0, 2.5);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+
+  sunCoronaTex = new THREE.CanvasTexture(canvas);
+  sunCoronaTex.colorSpace = THREE.SRGBColorSpace;
+  return sunCoronaTex;
 }

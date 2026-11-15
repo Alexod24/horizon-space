@@ -56,13 +56,13 @@ export default function TimelineBar() {
   };
 
   return (
-    <div className="z-20 flex shrink-0 flex-wrap items-center gap-3 border-b border-sky-500/20 bg-[#08111f] px-4 py-2 text-xs">
+    <div className="z-20 flex shrink-0 flex-wrap items-center gap-3 border-b border-neutral-800 bg-[#161616] px-4 py-2 text-xs">
       {/* Play + Speed */}
       <div className="flex items-center gap-1.5">
         <button
           onClick={() => setPlaying(!playing)}
           aria-label={playing ? "Pausar simulación" : "Reproducir simulación"}
-          className="flex h-7 w-7 items-center justify-center rounded border border-sky-400/40 bg-sky-500/10 text-sky-300 transition hover:bg-sky-500/20"
+          className="flex h-7 w-7 items-center justify-center rounded border border-neutral-700 bg-neutral-900 text-white transition hover:border-neutral-500 hover:bg-neutral-800"
         >
           {playing ? "❚❚" : "▶"}
         </button>
@@ -71,11 +71,10 @@ export default function TimelineBar() {
             <button
               key={s}
               onClick={() => setSpeed(s)}
-              className={`rounded border px-1.5 py-1 font-mono text-[10px] transition ${
-                speed === s
-                  ? "border-sky-400/60 bg-sky-500/20 text-sky-200"
-                  : "border-white/10 text-slate-400 hover:text-slate-200"
-              }`}
+              className={`rounded border px-1.5 py-1 font-mono text-[10px] transition ${speed === s
+                ? "border-white bg-white font-semibold text-black"
+                : "border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
+                }`}
             >
               {s}h/s
             </button>
@@ -85,8 +84,8 @@ export default function TimelineBar() {
 
       {/* Center Slider + Date */}
       <div className="flex min-w-[240px] flex-1 flex-col items-center">
-        <div className="mb-0.5 flex items-center gap-2 text-[11px] tracking-wide text-slate-300">
-          <span className="text-slate-400">FECHA DE ATERRIZAJE:</span>
+        <div className="mb-0.5 flex items-center gap-2 text-[11px] text-neutral-400">
+          <span>Fecha de aterrizaje:</span>
           <span className="font-mono font-semibold text-white">{formatDate(timeMs)}</span>
         </div>
 
@@ -107,34 +106,32 @@ export default function TimelineBar() {
             className="pointer-events-none absolute top-1/2 z-20 -translate-x-1/2 -translate-y-1/2"
             style={{ left: `${delayPct}%` }}
           >
-            <div className="h-3.5 w-3.5 rounded-full border-2 border-[#ff9a3c] bg-[#08111f] shadow-[0_0_10px_#ff9a3c]" />
-            <span className="absolute left-1/2 top-4 -translate-x-1/2 whitespace-nowrap rounded border border-[#ff9a3c]/60 bg-[#2a1707]/90 px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#ff9a3c]">
-              RETRASO +{delayHours}H
+            <div className="h-3 w-3 rounded-full border-2 border-[#ff9a3c] bg-[#161616]" />
+            <span className="absolute left-1/2 top-4 -translate-x-1/2 whitespace-nowrap rounded border border-neutral-700 bg-neutral-900 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-neutral-200">
+              +{delayHours}H
             </span>
           </div>
         </div>
       </div>
 
-      {/* Right actions: Terrain filter + Jump to crisis + Compare toggle */}
-      <div className="flex items-center gap-2.5">
-        <div className="hidden items-center overflow-hidden rounded border border-white/15 bg-slate-900/70 text-[10px] sm:flex">
+      {/* Right actions: Terrain filter + Isolate Pole + Jump to crisis + Compare toggle */}
+      <div className="flex items-center gap-2">
+        <div className="hidden items-center overflow-hidden rounded border border-neutral-800 bg-neutral-900 text-[10px] sm:flex">
           <button
             type="button"
             onClick={() => setTerrainMode("realistic")}
-            className={`px-2 py-1 font-medium transition ${
-              terrainMode === "realistic" ? "bg-sky-500/25 text-sky-200" : "text-slate-400 hover:text-slate-200"
-            }`}
+            className={`px-2 py-1 font-medium transition ${terrainMode === "realistic" ? "bg-white text-black" : "text-neutral-400 hover:text-neutral-200"
+              }`}
           >
-            REALISTA
+            Realista
           </button>
           <button
             type="button"
             onClick={() => setTerrainMode("tactical")}
-            className={`px-2 py-1 font-medium transition ${
-              terrainMode === "tactical" ? "bg-sky-500/25 text-sky-200" : "text-slate-400 hover:text-slate-200"
-            }`}
+            className={`px-2 py-1 font-medium transition ${terrainMode === "tactical" ? "bg-white text-black" : "text-neutral-400 hover:text-neutral-200"
+              }`}
           >
-            TÁCTICO
+            Táctico
           </button>
         </div>
 
@@ -142,38 +139,35 @@ export default function TimelineBar() {
           type="button"
           onClick={() => setIsolatePole(!isolatePole)}
           title="Mostrar únicamente el área del Polo Sur (radio 15 km)"
-          className={`hidden rounded border px-2 py-1 text-[10px] font-medium transition sm:inline-block ${
-            isolatePole
-              ? "border-sky-400/70 bg-sky-500/20 text-sky-200"
-              : "border-white/15 text-slate-400 hover:text-slate-200"
-          }`}
+          className={`hidden rounded border px-2 py-1 text-[10px] font-medium transition sm:inline-block ${isolatePole
+            ? "border-white bg-white text-black"
+            : "border-neutral-800 bg-neutral-900 text-neutral-300 hover:border-neutral-600"
+            }`}
         >
-          {isolatePole ? "SOLO POLO SUR ✓" : "SOLO POLO SUR"}
+          {isolatePole ? "Solo Polo Sur ✓" : "Solo Polo Sur"}
         </button>
 
         <button
           onClick={jumpToNextCrisis}
-          className="rounded border border-[#ff9a3c]/45 bg-[#ff9a3c]/10 px-2.5 py-1 text-[11px] font-medium text-[#ff9a3c] transition hover:bg-[#ff9a3c]/20"
-          title="Saltar al próximo instante donde un retraso de 48h provoca pérdida de luz o enlace"
+          className="rounded border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] font-medium text-neutral-200 transition hover:border-neutral-500 hover:bg-neutral-800"
+          title="Saltar al próximo instante donde el retraso provoca pérdida de luz o enlace"
         >
-          ⚡ Siguiente crisis
+          Siguiente crisis
         </button>
 
-        <label className="flex cursor-pointer select-none items-center gap-2 text-[11px] font-semibold tracking-wider text-slate-200">
-          <span>COMPARAR</span>
+        <label className="flex cursor-pointer select-none items-center gap-2 text-[11px] font-medium text-neutral-300">
+          <span>Comparar</span>
           <button
             type="button"
             role="switch"
             aria-checked={compare}
             onClick={() => setCompare(!compare)}
-            className={`relative h-5 w-10 rounded-full border transition ${
-              compare ? "border-sky-400 bg-sky-500/30" : "border-white/20 bg-slate-800"
-            }`}
+            className={`relative h-5 w-9 rounded-full border transition ${compare ? "border-white bg-white" : "border-neutral-700 bg-neutral-900"
+              }`}
           >
             <span
-              className={`absolute top-0.5 h-3.5 w-3.5 rounded-full transition-all ${
-                compare ? "left-5 bg-sky-300 shadow-[0_0_8px_#3db8ff]" : "left-0.5 bg-slate-400"
-              }`}
+              className={`absolute top-0.5 h-3.5 w-3.5 rounded-full transition-all ${compare ? "left-4 bg-black" : "left-0.5 bg-neutral-400"
+                }`}
             />
           </button>
         </label>

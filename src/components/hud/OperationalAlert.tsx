@@ -1,10 +1,13 @@
 "use client";
 
 import { useScenario } from "@/lib/useScenario";
+import { findVehicle } from "@/lib/vehicles";
 import { useMissionStore } from "@/store/useMissionStore";
 
 export default function OperationalAlert() {
   const delayHours = useMissionStore((s) => s.delayHours);
+  const vehicleId = useMissionStore((s) => s.vehicleId);
+  const veh = findVehicle(vehicleId);
   const nominal = useScenario(0);
   const crisis = useScenario(delayHours);
 
@@ -15,6 +18,8 @@ export default function OperationalAlert() {
   const crisisLostEarth = !nominal.occ.earth && crisis.occ.earth;
   const delayDegrades = crisisLostSun || crisisLostEarth;
   const bothBad = nominal.occ.any && crisis.occ.any;
+  const crisisDarkH = crisis.occ.sun ? crisis.sunWindow.msToChange / 3.6e6 : 0;
+  const freezes = crisis.occ.sun && crisisDarkH > veh.maxDarkHours;
 
   let title = "OPERACIÓN NOMINAL";
   let detail = `Con un retraso de ${delayHours}h, el sitio mantiene luz solar y enlace directo con la Tierra.`;
@@ -42,10 +47,10 @@ export default function OperationalAlert() {
 
   const boxClass =
     tone === "danger"
-      ? "border-rose-500/70 bg-rose-950/40 text-rose-200 shadow-[0_0_24px_rgba(244,63,94,0.2)]"
+      ? "border-rose-500/70 bg-rose-950/35 text-rose-200"
       : tone === "warn"
-        ? "border-amber-500/50 bg-amber-950/30 text-amber-200"
-        : "border-emerald-500/40 bg-emerald-950/25 text-emerald-200";
+        ? "border-neutral-700 bg-neutral-900 text-neutral-200"
+        : "border-neutral-700 bg-neutral-900/70 text-neutral-200";
 
   const titleClass =
     tone === "danger"
@@ -55,14 +60,19 @@ export default function OperationalAlert() {
         : "text-emerald-400";
 
   return (
-    <div className="rounded-md border border-sky-500/20 bg-[#081221] p-3 text-xs">
-      <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-slate-300">
+    <div className="rounded-md border border-neutral-800 bg-[#161616] p-3 text-xs">
+      <div className="mb-2 text-[10px] font-semibold tracking-[0.14em] text-neutral-400">
         ALERTAS OPERACIONALES
       </div>
 
       <div role="alert" className={`rounded border p-3 text-center ${boxClass}`}>
         <div className={`text-xs font-bold tracking-wider ${titleClass}`}>{title}</div>
-        <p className="mt-1.5 text-[11px] leading-relaxed opacity-90">{detail}</p>
+        <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-300">{detail}</p>
+        {freezes && (
+          <div className="mt-2 rounded border border-rose-500/50 bg-rose-950/60 px-2 py-1 font-mono text-[10px] font-semibold text-rose-300">
+            ❄ {veh.name}: sombra supera su límite térmico de {veh.maxDarkHours}h
+          </div>
+        )}
       </div>
     </div>
   );

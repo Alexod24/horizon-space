@@ -4,8 +4,8 @@
 
 html,
 body {
-  background: #050a12;
-  color: #e2e8f0;
+  background: #0f0f0f;
+  color: #ededed;
 }
 
 .horizon-range {
@@ -17,44 +17,43 @@ body {
 }
 
 .horizon-range::-webkit-slider-runnable-track {
-  height: 6px;
+  height: 4px;
   border-radius: 9999px;
   background: linear-gradient(
     to right,
-    #3db8ff var(--pct, 0%),
-    rgba(148, 163, 184, 0.2) var(--pct, 0%)
+    #ffffff var(--pct, 0%),
+    rgba(255, 255, 255, 0.14) var(--pct, 0%)
   );
-  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.8);
 }
 
 .horizon-range::-moz-range-track {
-  height: 6px;
+  height: 4px;
   border-radius: 9999px;
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .horizon-range::-moz-range-progress {
-  height: 6px;
+  height: 4px;
   border-radius: 9999px;
-  background: #3db8ff;
+  background: #ffffff;
 }
 
 .horizon-range::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   margin-top: -5px;
   border-radius: 9999px;
-  background: #e0f2fe;
-  border: 3px solid #3db8ff;
-  box-shadow: 0 0 12px #3db8ff;
+  background: #ffffff;
+  border: 2px solid #0f0f0f;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 
 .horizon-range::-moz-range-thumb {
   width: 14px;
   height: 14px;
   border-radius: 9999px;
-  background: #e0f2fe;
-  border: 3px solid #3db8ff;
-  box-shadow: 0 0 12px #3db8ff;
+  background: #ffffff;
+  border: 2px solid #0f0f0f;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
