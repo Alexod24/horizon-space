@@ -3,87 +3,78 @@
 import LangToggle from "@/components/hud/LangToggle";
 import { useMissionStore } from "@/store/useMissionStore";
 
-const HERO_STATS = [
-  { val: "69,985", labelEs: "Muestras JPL", labelEn: "JPL Samples" },
-  { val: "15 KM", labelEs: "Radio LOLA", labelEn: "LOLA Radius" },
-  { val: "±1.9°", labelEs: "Ángulo Solar", labelEn: "Solar Angle" },
-  { val: "+48H", labelEs: "Crisis Retraso", labelEn: "Delay Crisis" },
+const HERO_PILLARS = [
+  {
+    img: "/sun.jpg",
+    titleEs: "Luz del Sol",
+    titleEn: "Sunlight",
+    descEs: "Energía y calor para que la nave no se congele",
+    descEn: "Power and warmth so the lander doesn't freeze",
+  },
+  {
+    img: "/earth.jpg",
+    titleEs: "Señal con la Tierra",
+    titleEn: "Earth Signal",
+    descEs: "Contacto directo sin montañas en medio",
+    descEn: "Direct contact without mountains in the way",
+  },
 ];
 
 const STEPS = [
   {
     num: "01",
-    pct: "25%",
-    titleEs: "Marca el Sitio",
-    titleEn: "Pin the Site",
-    descEs: "Haz clic en cualquier punto dentro de los 15 km del cráter Shackleton para fijar el aterrizaje.",
-    descEn: "Click anywhere within the 15 km Shackleton Crater zone to set your target landing site.",
+    pct: "Paso 1",
+    titleEs: "Elige dónde aterrizar",
+    titleEn: "Pick a Landing Spot",
+    descEs: "Haz clic sobre el cráter lunar en 3D para marcar el punto donde quieres enviar tu misión.",
+    descEn: "Click anywhere on the 3D lunar crater to mark where you want your mission to land.",
   },
   {
     num: "02",
-    pct: "50%",
-    titleEs: "Equipo y Fecha",
-    titleEn: "Vehicle & Date",
-    descEs: "Elige un módulo real (VIPER, Athena, Vikram, LTV) y la fecha/hora UTC de lanzamiento.",
-    descEn: "Select a real lunar vehicle (VIPER, Athena, Vikram, LTV) and the UTC launch date/time.",
+    pct: "Paso 2",
+    titleEs: "Elige tu nave y fecha",
+    titleEn: "Choose Craft & Date",
+    descEs: "Selecciona un vehículo lunar real y el día de despegue desde la Tierra.",
+    descEn: "Select a real lunar vehicle and the launch date from Earth.",
   },
   {
     num: "03",
-    pct: "75%",
-    titleEs: "Simula el Retraso",
-    titleEn: "Simulate Delay",
-    descEs: "Compara lado a lado el escenario nominal (T+0h) frente a un retraso de +24h, +48h o +72h.",
-    descEn: "Compare the nominal scenario (T+0h) side-by-side against a +24h, +48h, or +72h launch slip.",
+    pct: "Paso 3",
+    titleEs: "¿Y si el cohete se atrasa?",
+    titleEn: "What if Launch Delays?",
+    descEs: "Compara qué pasa si despegas a tiempo frente a un retraso de 24, 48 o 72 horas.",
+    descEn: "Compare an on-time launch against a 24, 48, or 72-hour delay.",
   },
   {
     num: "04",
-    pct: "100%",
-    titleEs: "Evalúa Oclusión",
-    titleEn: "Assess Occlusion",
-    descEs: "Detecta en 3D si las crestas bloquean al Sol o a la Tierra antes de comprometer la misión.",
-    descEn: "Detect in 3D whether crater ridges block the Sun or Earth before committing the mission.",
+    pct: "Paso 4",
+    titleEs: "Descubre si es seguro",
+    titleEn: "See if It's Safe",
+    descEs: "Verifica con un simple check (✓) si tendrás luz del Sol y señal con la Tierra durante 7 días.",
+    descEn: "Check at a glance (✓) whether you'll have sunlight and Earth signal for 7 days.",
   },
 ];
 
-const FUTURE_FEATURES = [
+const AUDIENCE_LEVELS = [
   {
-    titleEs: "Múltiples Sitios Polares",
-    titleEn: "Multiple Polar Sites",
-    descEs: "Expansión del motor de oclusión hacia Malapert Massif, Nobile Rim y el cráter Amundsen con tiles LOLA de 5 m/px.",
-    descEn: "Expansion of the occlusion engine to Malapert Massif, Nobile Rim, and Amundsen Crater using 5 m/px LOLA tiles.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-8 w-8 text-white">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 0 0 18M12 3a14 14 0 0 1 0 18" />
-      </svg>
-    ),
+    badgeEs: "MODO SIMPLE (POR DEFECTO)",
+    badgeEn: "SIMPLE MODE (DEFAULT)",
+    titleEs: "Educadores, Estudiantes y Público General",
+    titleEn: "Educators, Students & General Public",
+    descEs:
+      "Comprende de forma visual e intuitiva por qué el Polo Sur de la Luna es tan extremo. Indicadores claros del Sol y la Tierra con un simple check (✓) muestran al instante si la misión sobrevive.",
+    descEn:
+      "Understand visually and intuitively why the Lunar South Pole is so extreme. Clear Sun and Earth indicators with a simple check (✓) show instantly whether the mission survives.",
   },
   {
-    titleEs: "Rutas de Rover 3D",
-    titleEn: "3D Rover Traverse",
-    descEs: "Planificación de trayectorias dinámicas para rovers siguiendo crestas de iluminación continua y evitando sombras letales.",
-    descEn: "Dynamic rover path planning along ridges of near-continuous illumination while avoiding lethal shadows.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-8 w-8 text-white">
-        <path d="M4 17l5-5 4 3 7-8" />
-        <circle cx="4" cy="17" r="1.5" />
-        <circle cx="20" cy="7" r="1.5" />
-        <path d="M16 7h4v4" />
-      </svg>
-    ),
-  },
-  {
-    titleEs: "Enlace LRO / DSN en Vivo",
-    titleEn: "Live LRO / DSN Link",
-    descEs: "Integración automática con efemérides diarias de la Red de Espacio Profundo (DSN) y carga de archivos GeoTIFF propios.",
-    descEn: "Automated integration with daily Deep Space Network (DSN) ephemerides and custom GeoTIFF terrain uploads.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-8 w-8 text-white">
-        <path d="M4.5 16.5a10 10 0 0 1 15 0M7.5 19a6 6 0 0 1 9 0" />
-        <circle cx="12" cy="20" r="1" fill="currentColor" />
-        <path d="M12 12V4m0 0-3 3m3-3 3 3" />
-      </svg>
-    ),
+    badgeEs: "MODO AVANZADO (1 CLIC)",
+    badgeEn: "ADVANCED MODE (1 CLICK)",
+    titleEs: "Planificadores e Ingenieros de Misión",
+    titleEn: "Mission Planners & Flight Directors",
+    descEs:
+      "Activa el panel de opciones avanzadas para consultar porcentajes de viabilidad, tiempos de tránsito (7d, 14d, 45d), ángulos solares, límites de batería y recomendación automática de fechas óptimas.",
+    descEn:
+      "Enable Advanced Options to inspect viability scores, transit profiles (7d, 14d, 45d), solar angles, battery limits, and automated optimal launch window recommendations.",
   },
 ];
 
@@ -108,9 +99,9 @@ export default function LandingPage() {
           </div>
 
           <nav className="hidden items-center gap-7 text-[11px] font-medium tracking-wider text-neutral-400 md:flex">
-            <a href="#reto" className="transition hover:text-white">{en ? "The Challenge" : "El Reto"}</a>
-            <a href="#solucion" className="transition hover:text-white">{en ? "Solution & Steps" : "Solución y Pasos"}</a>
-            <a href="#futuro" className="transition hover:text-white">{en ? "Roadmap" : "Futuras Features"}</a>
+            <a href="#reto" className="transition hover:text-white">{en ? "Why the Moon?" : "¿Por qué es difícil?"}</a>
+            <a href="#niveles" className="transition hover:text-white">{en ? "For Everyone" : "Para Todos"}</a>
+            <a href="#solucion" className="transition hover:text-white">{en ? "How It Works" : "Cómo Funciona"}</a>
             <span className="font-mono text-[10px] text-neutral-500">SPACE APPS 2026</span>
           </nav>
 
@@ -141,29 +132,44 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/50" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-6xl px-6 pb-14 pt-16 sm:pt-24">
+        <div className="relative z-10 mx-auto max-w-6xl px-6 pb-16 pt-16 sm:pt-24">
           <div className="max-w-xl">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/60 px-3 py-1 font-mono text-[10px] tracking-[0.2em] text-neutral-300 backdrop-blur-sm">
-              {en ? "NASA SPACE APPS CHALLENGE · LUNAR SOUTH POLE" : "NASA SPACE APPS CHALLENGE · POLO SUR LUNAR"}
+              {en ? "NASA SPACE APPS CHALLENGE · LUNAR SOUTH POLE" : "NASA SPACE APPS CHALLENGE · POLO SUR DE LA LUNA"}
             </div>
 
             <h1 className="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
               Horizon Space
-              <span className="mt-1 block text-2xl font-normal text-neutral-300 sm:text-3xl">
-                {en ? "Lunar Landing Site Navigator" : "Navigator de Sitios de Aterrizaje Lunar"}
+              <span className="mt-1.5 block text-xl font-normal text-neutral-300 sm:text-2xl">
+                {en
+                  ? "Explore why landing on the Moon is a race against shadows"
+                  : "Descubre por qué aterrizar en la Luna es una carrera contra las sombras"}
               </span>
             </h1>
 
-            {/* 4 Telemetry Stat Boxes */}
-            <div className="mt-7 grid grid-cols-4 gap-2.5 sm:max-w-md">
-              {HERO_STATS.map((s) => (
+            <p className="mt-4 text-sm leading-relaxed text-neutral-300">
+              {en
+                ? "To survive on the Moon, a spacecraft needs two basic things: Sunlight for power and a clear view of Earth to communicate. Discover in 3D what happens when mountains get in the way."
+                : "Para sobrevivir en la Luna, una nave necesita dos cosas básicas: luz del Sol para tener energía y ver a la Tierra para comunicarse. Explora en 3D qué pasa cuando las montañas lunares se interponen."}
+            </p>
+
+            {/* 2 Visual Pillars with Real Sun & Earth Images */}
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {HERO_PILLARS.map((p) => (
                 <div
-                  key={s.labelEs}
-                  className="rounded-md border border-white/15 bg-black/70 px-2.5 py-3 text-center backdrop-blur-sm"
+                  key={p.titleEs}
+                  className="flex items-center gap-3 rounded-md border border-white/15 bg-black/70 p-3 backdrop-blur-sm"
                 >
-                  <div className="font-mono text-base font-bold text-white sm:text-lg">{s.val}</div>
-                  <div className="mt-0.5 text-[9px] uppercase tracking-wider text-neutral-400">
-                    {en ? s.labelEn : s.labelEs}
+                  <img
+                    src={p.img}
+                    alt={en ? p.titleEn : p.titleEs}
+                    className="h-10 w-10 shrink-0 rounded-full border border-white/20 object-cover"
+                  />
+                  <div>
+                    <div className="text-xs font-bold text-white">{en ? p.titleEn : p.titleEs}</div>
+                    <div className="text-[11px] leading-snug text-neutral-400">
+                      {en ? p.descEn : p.descEs}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -176,87 +182,54 @@ export default function LandingPage() {
                 className="rounded-full bg-white px-7 py-2.5 text-xs font-bold tracking-wider text-black shadow-[0_0_30px_rgba(255,255,255,0.25)] transition hover:bg-neutral-200"
               >
                 {status === "loading"
-                  ? (en ? "LOADING NASA DATA..." : "CARGANDO DATOS NASA...")
-                  : (en ? "PLAN MISSION →" : "PLANIFICAR MISIÓN →")}
+                  ? (en ? "LOADING SIMULATOR..." : "CARGANDO SIMULADOR...")
+                  : (en ? "START EXPLORING →" : "EMPEZAR A EXPLORAR →")}
               </button>
               <a
                 href="#reto"
                 className="rounded-full border border-white/25 bg-black/50 px-6 py-2.5 text-xs font-medium text-neutral-200 backdrop-blur-sm transition hover:border-white/50 hover:text-white"
               >
-                {en ? "Explore the Challenge" : "Conocer el Reto"}
+                {en ? "How does it work?" : "¿Cómo funciona?"}
               </a>
-            </div>
-          </div>
-
-          {/* Bottom Hero Progress / Mission Window Strip */}
-          <div className="mt-14 rounded-md border border-white/10 bg-black/70 p-4 backdrop-blur-md">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] text-neutral-400">
-              <span>{en ? "REAL EPHEMERIS WINDOW (JPL HORIZONS DE441)" : "VENTANA DE EFEMÉRIDES REALES (JPL HORIZONS DE441)"}</span>
-              <span className="text-white">SHACKLETON RIM · 89.87°S, 296.36°E</span>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-800">
-              <div className="h-full w-2/3 rounded-full bg-white" />
-            </div>
-            <div className="mt-2 flex justify-between font-mono text-[10px] text-neutral-500">
-              <span>2026-01-01 UTC</span>
-              <span>{en ? "STEP: 15 MIN · RADIUS: 15 KM" : "PASO: 15 MIN · RADIO: 15 KM"}</span>
-              <span>2027-12-31 UTC</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 2: EL RETO */}
-      <section id="reto" className="relative overflow-hidden border-b border-neutral-900 bg-[#080808] py-24">
+      {/* SECTION 2: EL RETO EXPLICADO SIMPLE */}
+      <section id="reto" className="relative overflow-hidden border-b border-neutral-900 bg-[#080808] py-20">
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 md:grid-cols-2">
           {/* Left Floating Visual */}
-          <div className="relative flex h-80 items-center justify-center">
+          <div className="relative flex h-72 items-center justify-center">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0.02)_40%,transparent_70%)]" />
 
             <img
               src="/vehicles/nova-c.jpg"
-              alt={en ? "Lunar lander in South Pole shadow" : "Módulo lunar en sombra del Polo Sur"}
-              className="relative z-10 h-72 w-72 object-contain brightness-95 contrast-110 [mask-image:radial-gradient(closest-side,black_58%,transparent_100%)]"
+              alt={en ? "Lunar lander" : "Módulo lunar"}
+              className="relative z-10 h-64 w-64 object-contain brightness-95 contrast-110 [mask-image:radial-gradient(closest-side,black_58%,transparent_100%)]"
             />
-
-            <div className="pointer-events-none absolute left-2 top-6 z-20 font-mono text-[10px] tracking-wider text-neutral-400">
-              <div className="text-neutral-500">{en ? "SOLAR ELEVATION" : "ELEVACIÓN SOLAR"}</div>
-              <div className="text-xs font-semibold text-white">{en ? "±1.9° HORIZON" : "±1.9° HORIZONTE"}</div>
-            </div>
-
-            <div className="pointer-events-none absolute bottom-6 left-2 z-20 font-mono text-[10px] tracking-wider text-neutral-400">
-              <div className="text-neutral-500">{en ? "SHACKLETON SHADOW" : "SOMBRA SHACKLETON"}</div>
-              <div className="text-xs font-semibold text-white">{en ? "> 40 KM REACH" : "> 40 KM ALCANCE"}</div>
-            </div>
-
-            <div className="pointer-events-none absolute bottom-6 right-2 z-20">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-950/50 px-3 py-1 font-mono text-[10px] text-rose-300 backdrop-blur-sm">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-400" />
-                {en ? "FREEZING RISK" : "RIESGO DE CONGELAMIENTO"}
-              </span>
-            </div>
           </div>
 
           {/* Right Narrative */}
           <div>
             <div className="flex items-center gap-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
               <span className="font-mono text-neutral-500">&rsaquo;</span>
-              <h2>{en ? "The Challenge: The Launch Delay Crisis" : "El Reto: La Crisis de los Retrasos"}</h2>
+              <h2>{en ? "Why Does a Launch Delay Matter?" : "¿Por qué importa un retraso en el despegue?"}</h2>
             </div>
 
-            <p className="mt-5 text-sm leading-relaxed text-neutral-400">
+            <p className="mt-4 text-sm leading-relaxed text-neutral-300">
               {en
-                ? "At the Lunar South Pole, the Sun and Earth barely rise above the horizon (±1.9° solar elevation). Crater rims like Shackleton cast shadows stretching tens of kilometers."
-                : "En el Polo Sur Lunar, el Sol y la Tierra apenas se elevan sobre el horizonte (±1.9° solar). Las crestas de cráteres como Shackleton proyectan sombras de decenas de kilómetros."}
+                ? "At the Moon's South Pole, the Sun never rises high in the sky—it skims the horizon. Because of this, craters and mountains cast giant shadows that move slowly as the days pass."
+                : "En el Polo Sur de la Luna, el Sol nunca sube alto en el cielo: siempre está al ras del horizonte. Por eso, las montañas y cráteres proyectan sombras gigantescas que se mueven a medida que pasan los días."}
             </p>
             <p className="mt-3 text-sm leading-relaxed text-neutral-400">
               {en ? (
                 <>
-                  If a launch slips by <strong className="text-white">24, 48, or 72 hours</strong>, orbital geometry shifts: a safe landing site can fall into permanent darkness or lose direct line-of-sight to Earth, freezing the rover in hours.
+                  If a rocket on Earth is delayed by just <strong className="text-white">1 or 2 days</strong>, the spacecraft arrives on the Moon on a different date—when its landing spot might already be covered by shadow or blocked from communicating with Earth.
                 </>
               ) : (
                 <>
-                  Si un lanzamiento se retrasa <strong className="text-white">24, 48 o 72 horas</strong>, la geometría orbital cambia: un punto que era seguro puede quedar atrapado en oscuridad permanente o sin línea de visión directa con la Tierra, congelando el rover en horas.
+                  Si el cohete en la Tierra se retrasa apenas <strong className="text-white">1 o 2 días</strong>, la nave llega a la Luna en una fecha distinta: un lugar que era soleado y seguro puede estar ahora en plena oscuridad o sin comunicación con la Tierra.
                 </>
               )}
             </p>
@@ -265,114 +238,65 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={() => setEnteredApp(true)}
-                className="rounded-full bg-white px-7 py-2.5 text-xs font-bold tracking-wider text-black shadow-[0_0_24px_rgba(255,255,255,0.18)] transition hover:bg-neutral-200"
+                className="rounded-full bg-white px-7 py-2.5 text-xs font-bold tracking-wider text-black transition hover:bg-neutral-200"
               >
-                {en ? "Try Simulator" : "Probar Simulador"}
+                {en ? "Try the Simulator" : "Probar el Simulador"}
               </button>
-              <a
-                href="#solucion"
-                className="rounded-full border border-neutral-700 px-6 py-2.5 text-xs font-medium text-neutral-300 transition hover:border-white/50 hover:text-white"
-              >
-                {en ? "View Solution" : "Ver Solución"}
-              </a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 3: LA SOLUCIÓN & PASOS */}
-      <section id="solucion" className="border-b border-neutral-900 bg-[#080808] py-24">
+      {/* SECTION 3: ACCESIBILIDAD PARA TODOS LOS NIVELES */}
+      <section id="niveles" className="border-b border-neutral-900 bg-[#0a0a0a] py-20">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="flex items-center gap-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            <span className="font-mono text-neutral-500">&rsaquo;</span>
-            <h2>{en ? "The Solution: 4-Step Mission Simulation" : "La Solución: Simulación en 4 Pasos"}</h2>
-          </div>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-400">
-            {en
-              ? "Zero-latency static pre-computation engine that crosses real LOLA DEM topography with JPL Horizons ephemerides to validate in milliseconds whether a site survives a launch delay."
-              : "Motor de pre-computación estática sin latencia que cruza topografía real LOLA DEM con efemérides JPL Horizons para validar en milisegundos si un sitio sobrevive al retraso."}
-          </p>
-
-          {/* Step Headers */}
-          <div className="mt-12 grid grid-cols-2 gap-6 lg:grid-cols-4">
-            {STEPS.map((st) => (
-              <div key={st.num} className="flex items-baseline justify-between font-mono">
-                <span className="text-xl font-bold tracking-tight text-white">
-                  {en ? `STEP ${st.num}` : `PASO ${st.num}`}
-                </span>
-                <span className="text-[11px] text-neutral-500">{st.pct}</span>
-              </div>
-            ))}
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              <span className="font-mono text-neutral-500">&rsaquo;</span>
+              <h2>{en ? "Designed for Every Skill Level" : "Diseñado para Todos los Niveles"}</h2>
+            </div>
+            <p className="mt-2.5 text-sm leading-relaxed text-neutral-400">
+              {en
+                ? "Switch seamlessly between an intuitive visual view for learning and a full technical console for mission planning."
+                : "Cambia en cualquier momento entre una vista visual y sencilla para aprender, o una consola técnica completa para planificar misiones."}
+            </p>
           </div>
 
-          {/* Continuous Segmented Progress Bar */}
-          <div className="mt-3 grid h-2.5 w-full grid-cols-4 gap-1 overflow-hidden rounded-full bg-neutral-900 p-0.5">
-            {STEPS.map((st, idx) => (
+          <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2">
+            {AUDIENCE_LEVELS.map((lvl) => (
               <div
-                key={st.num}
-                className="h-full rounded-full bg-white transition-opacity"
-                style={{ opacity: 0.25 + idx * 0.25 }}
-              />
-            ))}
-          </div>
-
-          {/* Borderless Step Descriptions */}
-          <div className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((st) => (
-              <div key={st.num} className="border-l border-neutral-800/80 pl-4">
-                <h3 className="text-sm font-semibold text-white">{en ? st.titleEn : st.titleEs}</h3>
-                <p className="mt-2 text-xs leading-relaxed text-neutral-400">{en ? st.descEn : st.descEs}</p>
+                key={lvl.titleEs}
+                className="rounded-lg border border-neutral-800 bg-[#121212] p-6"
+              >
+                <span className="inline-block rounded border border-neutral-700 bg-neutral-900 px-2.5 py-1 font-mono text-[10px] font-semibold text-neutral-300">
+                  {en ? lvl.badgeEn : lvl.badgeEs}
+                </span>
+                <h3 className="mt-3 text-base font-bold text-white">
+                  {en ? lvl.titleEn : lvl.titleEs}
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-neutral-400">
+                  {en ? lvl.descEn : lvl.descEs}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* SECTION 4: FUTURAS FEATURES */}
-      <section id="futuro" className="relative overflow-hidden border-b border-neutral-900 bg-[#080808] pb-24 pt-20">
-        <div className="relative z-10 mx-auto max-w-2xl px-6 text-center">
-          <div className="mb-2 flex justify-center text-neutral-400">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            {en ? "Future Capabilities" : "Futuras Funcionalidades"}
-          </h2>
-          <p className="mx-auto mt-2.5 max-w-md text-xs leading-relaxed text-neutral-400">
-            {en
-              ? "Modular architecture built to scale toward full navigation and survival operations in the Artemis era."
-              : "Arquitectura modular preparada para escalar hacia operaciones completas de navegación y supervivencia en la era Artemis."}
-          </p>
-        </div>
-
-        <div className="relative mt-8 pt-20">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-56 overflow-hidden">
-            <img
-              src="/hero-moon.jpg"
-              alt=""
-              className="h-full w-full object-cover object-top opacity-45"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#080808] via-transparent to-[#080808]" />
+      {/* SECTION 4: 4 PASOS SIMPLES */}
+      <section id="solucion" className="border-b border-neutral-900 bg-[#080808] py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="flex items-center gap-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            <span className="font-mono text-neutral-500">&rsaquo;</span>
+            <h2>{en ? "How It Works in 4 Simple Steps" : "Cómo Funciona en 4 Pasos Simples"}</h2>
           </div>
 
-          <div className="relative z-10 mx-auto grid max-w-5xl grid-cols-1 gap-10 px-6 md:grid-cols-3">
-            {FUTURE_FEATURES.map((f) => (
-              <div key={f.titleEs} className="flex flex-col items-center text-center">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center opacity-90">
-                  {f.icon}
-                </div>
-                <h3 className="text-sm font-semibold text-white">{en ? f.titleEn : f.titleEs}</h3>
-                <p className="mt-2 max-w-xs text-xs leading-relaxed text-neutral-400">
-                  {en ? f.descEn : f.descEs}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setEnteredApp(true)}
-                  className="mt-5 rounded-full border border-neutral-700 bg-black/50 px-5 py-1.5 text-[10px] font-medium text-neutral-200 transition hover:border-white hover:text-white"
-                >
-                  {en ? "Try Baseline →" : "Probar Base →"}
-                </button>
+          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map((st) => (
+              <div key={st.num} className="rounded-lg border border-neutral-800/90 bg-[#111111] p-5">
+                <div className="font-mono text-xs font-bold text-neutral-400">{st.num}</div>
+                <h3 className="mt-2 text-sm font-semibold text-white">{en ? st.titleEn : st.titleEs}</h3>
+                <p className="mt-2 text-xs leading-relaxed text-neutral-400">{en ? st.descEn : st.descEs}</p>
               </div>
             ))}
           </div>
@@ -390,8 +314,8 @@ export default function LandingPage() {
             />
             <div>
               <div className="font-semibold tracking-[0.18em] text-white">HORIZON SPACE</div>
-              <div className="font-mono text-[10px] text-neutral-500">
-                SHACKLETON RIM · 89.87°S, 296.36°E
+              <div className="text-[11px] text-neutral-500">
+                {en ? "Lunar South Pole Landing Simulator" : "Simulador de Aterrizaje en el Polo Sur Lunar"}
               </div>
             </div>
           </div>
@@ -425,14 +349,11 @@ export default function LandingPage() {
             </svg>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 font-mono text-[10px]">
-            <span>LOLA DEM</span>
-            <span>·</span>
-            <span>JPL Horizons DE441</span>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-[11px]">
             <button
               type="button"
               onClick={() => setEnteredApp(true)}
-              className="rounded-full border border-neutral-700 bg-neutral-900 px-4 py-1.5 font-sans text-[11px] font-medium text-white transition hover:border-white hover:bg-white hover:text-black"
+              className="rounded-full border border-neutral-700 bg-neutral-900 px-5 py-2 font-medium text-white transition hover:border-white hover:bg-white hover:text-black"
             >
               {en ? "Start Simulation →" : "Iniciar Simulación →"}
             </button>

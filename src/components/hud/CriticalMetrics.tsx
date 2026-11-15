@@ -41,12 +41,12 @@ export function CompactMetricsCard({ offsetHours }: { offsetHours: number }) {
 
   if (!advancedHud) {
     return (
-      <div className="shrink-0 rounded-md border border-neutral-800 bg-[#161616] px-3 py-2.5 text-xs">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          {/* Viable status */}
+      <div className="shrink-0 rounded-md border border-neutral-800 bg-[#161616] p-2.5 text-xs">
+        {/* Top Viability Header */}
+        <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span
-              className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs font-bold ${
+              className={`flex h-5 w-5 items-center justify-center rounded-full border text-[11px] font-bold ${
                 viableNow
                   ? "border-emerald-500/60 bg-emerald-950/60 text-emerald-400"
                   : "border-rose-500/60 bg-rose-950/60 text-rose-400"
@@ -54,61 +54,103 @@ export function CompactMetricsCard({ offsetHours }: { offsetHours: number }) {
             >
               {viableNow ? "✓" : "✕"}
             </span>
-            <div>
-              <div className={`text-xs font-bold ${viableNow ? "text-emerald-400" : "text-rose-400"}`}>
-                {viableNow
+            <span className={`font-bold ${viableNow ? "text-emerald-400" : "text-rose-400"}`}>
+              {viableNow
+                ? en
+                  ? "Viable Landing"
+                  : "Aterrizaje Viable"
+                : en
+                  ? "Not Viable"
+                  : "No Viable"}
+            </span>
+          </div>
+          <span className="text-[10px] text-neutral-400">
+            {viableNow
+              ? en
+                ? "Sun & Earth connected"
+                : "Con luz y comunicación"
+              : !sunOk && !earthOk
+                ? en
+                  ? "In shadow & no signal"
+                  : "En sombra y sin señal"
+                : !sunOk
                   ? en
-                    ? "Viable"
-                    : "Viable"
+                    ? "Blocked by shadow"
+                    : "En sombra del cráter"
                   : en
-                    ? "Not Viable"
-                    : "No Viable"}
-              </div>
-              <div className="text-[10px] text-neutral-400">
-                {viableNow
-                  ? en
-                    ? "Safe landing window"
-                    : "Aterrizaje seguro"
-                  : !sunOk && !earthOk
-                    ? en
-                      ? "In shadow & no signal"
-                      : "En sombra y sin señal"
-                    : !sunOk
-                      ? en
-                        ? "Blocked by crater shadow"
-                        : "Bloqueado por sombra"
-                      : en
-                        ? "Earth signal blocked"
-                        : "Sin señal con la Tierra"}
+                    ? "No Earth signal"
+                    : "Sin señal con la Tierra"}
+          </span>
+        </div>
+
+        {/* Two Visual Boxes: Real Sun Image + Check & Real Earth Image + Check */}
+        <div className="grid grid-cols-2 gap-2">
+          {/* Sun Box */}
+          <div
+            className={`flex items-center justify-between gap-2 rounded-md border p-2 ${
+              sunOk
+                ? "border-emerald-500/40 bg-emerald-950/20"
+                : "border-rose-500/50 bg-rose-950/25"
+            }`}
+          >
+            <div className="flex min-w-0 items-center gap-2">
+              <img
+                src="/sun.jpg"
+                alt={en ? "Sun" : "Sol"}
+                className="h-9 w-9 shrink-0 rounded-full border border-amber-400/40 object-cover"
+              />
+              <div className="min-w-0">
+                <div className="truncate text-[11px] font-bold text-white">
+                  {en ? "Sun (Light)" : "Sol (Luz)"}
+                </div>
+                <div className={`truncate text-[10px] ${sunOk ? "text-emerald-300" : "text-rose-300"}`}>
+                  {sunOk ? (en ? "Illuminated" : "Con luz solar") : en ? "In shadow" : "En sombra"}
+                </div>
               </div>
             </div>
+            <span
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${
+                sunOk
+                  ? "border-emerald-500/60 bg-emerald-950/70 text-emerald-400"
+                  : "border-rose-500/60 bg-rose-950/70 text-rose-400"
+              }`}
+            >
+              {sunOk ? "✓" : "✕"}
+            </span>
           </div>
 
-          {/* Sun + Earth simple contact pills */}
-          <div className="flex items-center gap-2">
-            <div
-              className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
-                sunOk
-                  ? "border-emerald-500/40 bg-emerald-950/30 text-emerald-300"
-                  : "border-rose-500/50 bg-rose-950/40 text-rose-300"
-              }`}
-            >
-              <span aria-hidden="true">☀</span>
-              <span>{en ? "Sun:" : "Sol:"}</span>
-              <strong>{sunOk ? "✓" : "✕"}</strong>
+          {/* Earth Box */}
+          <div
+            className={`flex items-center justify-between gap-2 rounded-md border p-2 ${
+              earthOk
+                ? "border-emerald-500/40 bg-emerald-950/20"
+                : "border-rose-500/50 bg-rose-950/25"
+            }`}
+          >
+            <div className="flex min-w-0 items-center gap-2">
+              <img
+                src="/earth.jpg"
+                alt={en ? "Earth" : "Tierra"}
+                className="h-9 w-9 shrink-0 rounded-full border border-sky-400/40 object-cover"
+              />
+              <div className="min-w-0">
+                <div className="truncate text-[11px] font-bold text-white">
+                  {en ? "Earth (Signal)" : "Tierra (Señal)"}
+                </div>
+                <div className={`truncate text-[10px] ${earthOk ? "text-emerald-300" : "text-rose-300"}`}>
+                  {earthOk ? (en ? "In contact" : "En contacto") : en ? "Blocked" : "Sin señal"}
+                </div>
+              </div>
             </div>
-
-            <div
-              className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+            <span
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${
                 earthOk
-                  ? "border-emerald-500/40 bg-emerald-950/30 text-emerald-300"
-                  : "border-rose-500/50 bg-rose-950/40 text-rose-300"
+                  ? "border-emerald-500/60 bg-emerald-950/70 text-emerald-400"
+                  : "border-rose-500/60 bg-rose-950/70 text-rose-400"
               }`}
             >
-              <span aria-hidden="true">🌍</span>
-              <span>{en ? "Earth:" : "Tierra:"}</span>
-              <strong>{earthOk ? "✓" : "✕"}</strong>
-            </div>
+              {earthOk ? "✓" : "✕"}
+            </span>
           </div>
         </div>
       </div>

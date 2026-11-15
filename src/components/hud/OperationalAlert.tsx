@@ -315,18 +315,20 @@ export default function OperationalAlert() {
             </div>
           </div>
 
-          {/* Simple Sun & Earth Contact Rows */}
+          {/* Simple Sun & Earth Contact Rows with Real Photos */}
           <div className="mt-3 space-y-2 rounded border border-neutral-800/90 bg-[#121212] p-2.5">
             <div className="flex items-center justify-between text-[11px]">
               <span className="font-medium text-neutral-300">
                 {en ? "On time (Normal)" : "A tiempo (Normal)"}
               </span>
-              <div className="flex items-center gap-2 font-mono text-[11px]">
-                <span className={nomSunOk ? "text-emerald-400" : "text-rose-400"}>
-                  ☀ {nomSunOk ? "✓" : "✕"}
+              <div className="flex items-center gap-2.5 font-mono text-[11px] font-bold">
+                <span className={`inline-flex items-center gap-1 ${nomSunOk ? "text-emerald-400" : "text-rose-400"}`}>
+                  <img src="/sun.jpg" alt="Sol" className="h-4 w-4 rounded-full object-cover" />
+                  {nomSunOk ? "✓" : "✕"}
                 </span>
-                <span className={nomEarthOk ? "text-emerald-400" : "text-rose-400"}>
-                  🌍 {nomEarthOk ? "✓" : "✕"}
+                <span className={`inline-flex items-center gap-1 ${nomEarthOk ? "text-emerald-400" : "text-rose-400"}`}>
+                  <img src="/earth.jpg" alt="Tierra" className="h-4 w-4 rounded-full object-cover" />
+                  {nomEarthOk ? "✓" : "✕"}
                 </span>
               </div>
             </div>
@@ -335,12 +337,14 @@ export default function OperationalAlert() {
               <span className="font-medium text-neutral-300">
                 {en ? `Delayed (+${delayHours}h)` : `Con retraso (+${delayHours}h)`}
               </span>
-              <div className="flex items-center gap-2 font-mono text-[11px]">
-                <span className={criSunOk ? "text-emerald-400" : "text-rose-400"}>
-                  ☀ {criSunOk ? "✓" : "✕"}
+              <div className="flex items-center gap-2.5 font-mono text-[11px] font-bold">
+                <span className={`inline-flex items-center gap-1 ${criSunOk ? "text-emerald-400" : "text-rose-400"}`}>
+                  <img src="/sun.jpg" alt="Sol" className="h-4 w-4 rounded-full object-cover" />
+                  {criSunOk ? "✓" : "✕"}
                 </span>
-                <span className={criEarthOk ? "text-emerald-400" : "text-rose-400"}>
-                  🌍 {criEarthOk ? "✓" : "✕"}
+                <span className={`inline-flex items-center gap-1 ${criEarthOk ? "text-emerald-400" : "text-rose-400"}`}>
+                  <img src="/earth.jpg" alt="Tierra" className="h-4 w-4 rounded-full object-cover" />
+                  {criEarthOk ? "✓" : "✕"}
                 </span>
               </div>
             </div>
