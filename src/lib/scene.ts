@@ -43,6 +43,15 @@ export function formatDate(ms: number, lang: "es" | "en" = "es"): string {
   return `${p(d.getUTCDate())}/${months[d.getUTCMonth()]}/${d.getUTCFullYear()}, ${p(d.getUTCHours())}:${p(d.getUTCMinutes())} UTC`;
 }
 
+export function formatShortDay(ms: number, lang: "es" | "en" = "es"): string {
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  const months = lang === "en" ? MONTHS_EN : MONTHS_ES;
+  const mon = months[d.getUTCMonth()].toUpperCase();
+  const day = p(d.getUTCDate());
+  return lang === "en" ? `${mon} ${day}` : `${day} ${mon}`;
+}
+
 export function formatCoord(lat: number, lon: number): string {
   return `${Math.abs(lat).toFixed(2)}°${lat < 0 ? "S" : "N"}, ${lon.toFixed(2)}°E`;
 }

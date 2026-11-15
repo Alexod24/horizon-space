@@ -17,14 +17,59 @@ export interface MissionData {
 export type TerrainMode = "tactical" | "realistic";
 export type Lang = "es" | "en";
 
+export interface TransitProfile {
+  days: number;
+  labelEs: string;
+  labelEn: string;
+  shortEs: string;
+  shortEn: string;
+  descEs: string;
+  descEn: string;
+}
+
+export const TRANSIT_PROFILES: TransitProfile[] = [
+  {
+    days: 7,
+    labelEs: "Directo · 7d",
+    labelEn: "Direct · 7d",
+    shortEs: "7d Directo",
+    shortEn: "7d Direct",
+    descEs: "Transferencia directa tipo CLPS / Intuitive Machines",
+    descEn: "Direct lunar transfer (CLPS / Intuitive Machines profile)",
+  },
+  {
+    days: 14,
+    labelEs: "Estándar · 14d",
+    labelEn: "Standard · 14d",
+    shortEs: "14d Estándar",
+    shortEn: "14d Standard",
+    descEs: "Inserción con órbitas de fase intermedias",
+    descEn: "Phasing-loop lunar transfer profile",
+  },
+  {
+    days: 45,
+    labelEs: "Baja Energía · 45d",
+    labelEn: "Low-Energy · 45d",
+    shortEs: "45d Baja Energía",
+    shortEn: "45d Low-Energy",
+    descEs: "Transferencia balística de baja energía (BLT)",
+    descEn: "Ballistic low-energy lunar transfer (BLT)",
+  },
+];
+
+const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
+
 interface MissionState {
   status: "loading" | "ready" | "error";
   error?: string;
   data: MissionData | null;
   siteId: string;
   vehicleId: string;
-  /** Nominal landing instant (UTC ms). */
+  /** Nominal Earth launch instant T-0 (UTC ms). */
   timeMs: number;
+  /** Earth-to-Moon transit duration in days (e.g. 7, 14, 45). */
+  transitDays: number;
   delayHours: number;
   compare: boolean;
   terrainMode: TerrainMode;
@@ -45,6 +90,7 @@ interface MissionState {
   setData: (d: MissionData, startMs: number) => void;
   setError: (e: string) => void;
   setTime: (ms: number) => void;
+  setTransitDays: (days: number) => void;
   setDelay: (h: number) => void;
   setCompare: (c: boolean) => void;
   setTerrainMode: (m: TerrainMode) => void;
@@ -68,6 +114,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   siteId: "shackleton",
   vehicleId: "default",
   timeMs: 0,
+  transitDays: 7,
   delayHours: 48,
   compare: true,
   terrainMode: "realistic",
@@ -96,9 +143,29 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     set((s) => {
       if (!s.data) return { timeMs };
       const { t0Ms, t1Ms } = s.data.timeline;
-      return { timeMs: Math.min(Math.max(timeMs, t0Ms), t1Ms - s.delayHours * 3.6e6) };
+      const maxLaunchMs = t1Ms - s.transitDays * DAY_MS - s.delayHours * HOUR_MS;
+      return { timeMs: Math.min(Math.max(timeMs, t0Ms), maxLaunchMs) };
     }),
-  setDelay: (delayHours) => set({ delayHours }),
+  setTransitDays: (transitDays) =>
+    set((s) => {
+      if (!s.data) return { transitDays };
+      const { t0Ms, t1Ms } = s.data.timeline;
+      const maxLaunchMs = t1Ms - transitDays * DAY_MS - s.delayHours * HOUR_MS;
+      return {
+        transitDays,
+        timeMs: Math.min(Math.max(s.timeMs, t0Ms), maxLaunchMs),
+      };
+    }),
+  setDelay: (delayHours) =>
+    set((s) => {
+      if (!s.data) return { delayHours };
+      const { t0Ms, t1Ms } = s.data.timeline;
+      const maxLaunchMs = t1Ms - s.transitDays * DAY_MS - delayHours * HOUR_MS;
+      return {
+        delayHours,
+        timeMs: Math.min(Math.max(s.timeMs, t0Ms), maxLaunchMs),
+      };
+    }),
   setCompare: (compare) => set({ compare }),
   setTerrainMode: (terrainMode) => set({ terrainMode }),
   setTerrainBrightness: (terrainBrightness) => set({ terrainBrightness: Math.min(3, Math.max(0.5, terrainBrightness)) }),

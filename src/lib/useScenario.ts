@@ -9,7 +9,12 @@ import { useMissionStore } from "@/store/useMissionStore";
 export type Risk = "ALTO" | "MEDIO" | "BAJO";
 
 export interface ScenarioState {
+  /** Lunar surface simulation instant (Launch + Transit + Offset). */
   timeMs: number;
+  /** Earth launch instant (Launch + Offset). */
+  launchMs: number;
+  /** Earth-to-Moon transit duration in days. */
+  transitDays: number;
   index: number;
   sun: AzEl;
   earth: AzEl;
@@ -27,7 +32,10 @@ const DAY = 86_400_000;
 
 export function useScenario(offsetHours: number): ScenarioState | null {
   const data = useMissionStore((s) => s.data);
-  const timeMs = useMissionStore((s) => s.timeMs) + offsetHours * 3.6e6;
+  const baseLaunchMs = useMissionStore((s) => s.timeMs);
+  const transitDays = useMissionStore((s) => s.transitDays);
+  const launchMs = baseLaunchMs + offsetHours * 3.6e6;
+  const timeMs = launchMs + transitDays * DAY;
   const lang = useMissionStore((s) => s.lang);
   const en = lang === "en";
 
@@ -66,9 +74,9 @@ export function useScenario(offsetHours: number): ScenarioState | null {
     }
 
     return {
-      timeMs, index, sun, earth, occ, sunWindow, earthWindow,
+      timeMs, launchMs, transitDays, index, sun, earth, occ, sunWindow, earthWindow,
       sunRising: ahead.sun.el > sun.el,
       earth7d, sun7d, risk, riskReason,
     };
-  }, [data, timeMs, en]);
+  }, [data, timeMs, launchMs, transitDays, en]);
 }

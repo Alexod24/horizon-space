@@ -13,7 +13,7 @@ import { loadOrbitalTimeline, loadTerrain, loadTerrainContext } from "@/lib/engi
 import { buildHorizonMask } from "@/lib/engine/occlusion";
 import { computeVisibility, findNextCrisis } from "@/lib/engine/timeline";
 import { buildPlaceholderTerrain } from "@/lib/placeholderTerrain";
-import { formatCoord } from "@/lib/scene";
+import { formatCoord, formatShortDay } from "@/lib/scene";
 import { LUNAR_LANDMARKS } from "@/lib/landmarks";
 import { SITES } from "@/lib/sites";
 import { useMissionStore } from "@/store/useMissionStore";
@@ -33,6 +33,8 @@ function ViewportCard({
   ghostOffsetHours?: number;
   terrainSource: "lola" | "placeholder";
 }) {
+  const timeMs = useMissionStore((s) => s.timeMs);
+  const transitDays = useMissionStore((s) => s.transitDays);
   const outOfBoundsKm = useMissionStore((s) => s.outOfBoundsKm);
   const setOutOfBoundsKm = useMissionStore((s) => s.setOutOfBoundsKm);
   const isolatePole = useMissionStore((s) => s.isolatePole);
@@ -48,6 +50,12 @@ function ViewportCard({
   const selectedLandmark = LUNAR_LANDMARKS.find((l) => l.id === selectedLandmarkId) ?? null;
   const cardRef = useRef<HTMLDivElement>(null);
   const [isFs, setIsFs] = useState(false);
+
+  const launchMs = timeMs + offsetHours * 3_600_000;
+  const touchdownMs = launchMs + transitDays * 86_400_000;
+  const launchStr = formatShortDay(launchMs, lang);
+  const touchdownStr = formatShortDay(touchdownMs, lang);
+  const isDelayed = offsetHours > 0;
 
   useEffect(() => {
     const onChange = () => setIsFs(document.fullscreenElement === cardRef.current);
@@ -69,7 +77,22 @@ function ViewportCard({
       <div className="pointer-events-none absolute left-2.5 right-2.5 top-2.5 z-10 flex flex-wrap items-start justify-between gap-2 sm:left-3 sm:right-3 sm:top-3">
         <div className="max-w-full rounded border border-neutral-800 bg-[#141414]/85 px-2.5 py-1.5 backdrop-blur-sm">
           <div className="text-[10px] font-semibold tracking-wide text-neutral-100 sm:text-[11px]">{title}</div>
-          <div className="font-mono text-[9px] text-neutral-400 sm:text-[10px]">
+          <div className="mt-0.5 font-mono text-[9px] sm:text-[10px]">
+            <span className="text-neutral-400">
+              {en ? "LAUNCH:" : "LANZAMIENTO:"}{" "}
+              <strong className="text-neutral-200">{launchStr}</strong>
+              {isDelayed ? ` (+${offsetHours}H)` : ""}
+            </span>{" "}
+            <span className="text-neutral-500">➔</span>{" "}
+            <span className={isDelayed ? "text-amber-300" : "text-emerald-400"}>
+              {en ? "LUNAR TOUCHDOWN:" : "ALUNIZAJE:"}{" "}
+              <strong>{touchdownStr}</strong>{" "}
+              <span className="text-neutral-400">
+                ({isDelayed ? (en ? "CRISIS" : "CRISIS") : "NOMINAL"} · +{transitDays}D)
+              </span>
+            </span>
+          </div>
+          <div className="font-mono text-[9px] text-neutral-500 sm:text-[10px]">
             COORDS: {coords} · {en ? "DOME" : "CÚPULA"} R = 15 KM
           </div>
         </div>
@@ -257,9 +280,14 @@ export default function Home() {
 
         const contextTerrain = await loadTerrainContext("/data/terrain_context.json");
         const vis = computeVisibility(timeline, mask, maskStep);
+        const defaultTransitMs = 7 * 86_400_000;
+        const minTouchdownIdx = Math.ceil(defaultTransitMs / timeline.stepMs);
         const delaySteps = Math.round((48 * 3.6e6) / timeline.stepMs);
-        const firstCrisis = findNextCrisis(vis, 0, delaySteps);
-        const startMs = firstCrisis >= 0 ? timeline.t0Ms + firstCrisis * timeline.stepMs : timeline.t0Ms;
+        const firstCrisis = findNextCrisis(vis, minTouchdownIdx, delaySteps);
+        const startMs =
+          firstCrisis >= minTouchdownIdx
+            ? timeline.t0Ms + firstCrisis * timeline.stepMs - defaultTransitMs
+            : timeline.t0Ms;
 
         if (!cancelled) {
           setData({ timeline, terrain, contextTerrain, mask, maskStep, vis, terrainSource }, startMs);

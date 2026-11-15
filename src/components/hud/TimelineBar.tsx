@@ -3,13 +3,31 @@
 import { useEffect } from "react";
 import { findNextCrisis, indexAt } from "@/lib/engine/timeline";
 import { formatDate } from "@/lib/scene";
-import { useMissionStore } from "@/store/useMissionStore";
+import { TRANSIT_PROFILES, useMissionStore } from "@/store/useMissionStore";
 
 const SPEEDS = [6, 24, 72];
+const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
+
+function toDateInputUTC(ms: number): string {
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())}`;
+}
+
+function fromDateInputPreserveTimeUTC(dateStr: string, currentMs: number): number | null {
+  if (!dateStr) return null;
+  const cur = new Date(currentMs);
+  const p = (n: number) => String(n).padStart(2, "0");
+  const iso = `${dateStr}T${p(cur.getUTCHours())}:${p(cur.getUTCMinutes())}:00Z`;
+  const ms = Date.parse(iso);
+  return Number.isFinite(ms) ? ms : null;
+}
 
 export default function TimelineBar() {
   const data = useMissionStore((s) => s.data);
   const timeMs = useMissionStore((s) => s.timeMs);
+  const transitDays = useMissionStore((s) => s.transitDays);
   const delayHours = useMissionStore((s) => s.delayHours);
   const compare = useMissionStore((s) => s.compare);
   const terrainMode = useMissionStore((s) => s.terrainMode);
@@ -19,6 +37,7 @@ export default function TimelineBar() {
   const playing = useMissionStore((s) => s.playing);
   const speed = useMissionStore((s) => s.speed);
   const setTime = useMissionStore((s) => s.setTime);
+  const setTransitDays = useMissionStore((s) => s.setTransitDays);
   const setCompare = useMissionStore((s) => s.setCompare);
   const setTerrainMode = useMissionStore((s) => s.setTerrainMode);
   const setIsolatePole = useMissionStore((s) => s.setIsolatePole);
@@ -33,8 +52,8 @@ export default function TimelineBar() {
       last = now;
       const st = useMissionStore.getState();
       if (!st.data) return;
-      const maxMs = st.data.timeline.t1Ms - st.delayHours * 3.6e6;
-      const next = st.timeMs + dt * st.speed * 3.6e6;
+      const maxMs = st.data.timeline.t1Ms - st.transitDays * DAY_MS - st.delayHours * HOUR_MS;
+      const next = st.timeMs + dt * st.speed * HOUR_MS;
       setTime(next >= maxMs ? st.data.timeline.t0Ms : next);
       raf = requestAnimationFrame(step);
     });
@@ -44,17 +63,24 @@ export default function TimelineBar() {
   if (!data) return null;
 
   const { t0Ms, t1Ms, stepMs } = data.timeline;
-  const maxMs = t1Ms - delayHours * 3.6e6;
+  const transitMs = transitDays * DAY_MS;
+  const delayMs = delayHours * HOUR_MS;
+  const maxMs = t1Ms - transitMs - delayMs;
   const span = Math.max(maxMs - t0Ms, 1);
   const pct = ((timeMs - t0Ms) / span) * 100;
-  const delayPct = Math.min(((timeMs + delayHours * 3.6e6 - t0Ms) / span) * 100, 100);
+  const delayPct = Math.min(((timeMs + delayMs - t0Ms) / span) * 100, 100);
+  const touchdownMs = timeMs + transitMs;
 
   const jumpToNextCrisis = () => {
-    const idx = indexAt(data.timeline, timeMs) + 1;
-    const delaySteps = Math.round((delayHours * 3.6e6) / stepMs);
-    let hit = findNextCrisis(data.vis, idx, delaySteps);
-    if (hit < 0) hit = findNextCrisis(data.vis, 0, delaySteps);
-    if (hit >= 0) setTime(data.timeline.t0Ms + hit * stepMs);
+    const minTouchdownIdx = Math.ceil(transitMs / stepMs);
+    const currentTouchdownIdx = Math.max(
+      minTouchdownIdx,
+      indexAt(data.timeline, touchdownMs) + 1,
+    );
+    const delaySteps = Math.round(delayMs / stepMs);
+    let hit = findNextCrisis(data.vis, currentTouchdownIdx, delaySteps);
+    if (hit < 0) hit = findNextCrisis(data.vis, minTouchdownIdx, delaySteps);
+    if (hit >= 0) setTime(data.timeline.t0Ms + hit * stepMs - transitMs);
   };
 
   return (
@@ -84,11 +110,57 @@ export default function TimelineBar() {
         </div>
       </div>
 
-      {/* Center Slider + Date */}
+      {/* Compact Launch Date (T-0) + Transit Profile Selectors */}
+      <div className="hidden items-center gap-2 xl:flex">
+        <label className="flex items-center gap-1.5 rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-[10px]">
+          <span className="font-semibold tracking-wider text-neutral-400">
+            {en ? "LAUNCH (T-0):" : "LANZAMIENTO (T-0):"}
+          </span>
+          <input
+            type="date"
+            min={toDateInputUTC(t0Ms)}
+            max={toDateInputUTC(maxMs)}
+            value={toDateInputUTC(timeMs)}
+            onChange={(e) => {
+              const parsed = fromDateInputPreserveTimeUTC(e.target.value, timeMs);
+              if (parsed !== null) setTime(parsed);
+            }}
+            aria-label={en ? "Launch date (T-0)" : "Fecha de lanzamiento (T-0)"}
+            className="bg-transparent font-mono text-[11px] font-semibold text-white outline-none"
+          />
+        </label>
+
+        <label className="flex items-center gap-1.5 rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-[10px]">
+          <span className="font-semibold tracking-wider text-neutral-400">
+            {en ? "TRANSIT:" : "TRÁNSITO:"}
+          </span>
+          <select
+            value={transitDays}
+            onChange={(e) => setTransitDays(Number(e.target.value))}
+            aria-label={en ? "Transit profile" : "Perfil de tránsito"}
+            className="cursor-pointer bg-neutral-900 font-mono text-[11px] font-semibold text-white outline-none"
+          >
+            {TRANSIT_PROFILES.map((tp) => (
+              <option key={tp.days} value={tp.days} className="bg-neutral-900 text-white">
+                {en ? tp.labelEn : tp.labelEs}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      {/* Center Slider + Launch -> Touchdown Date */}
       <div className="flex min-w-[240px] flex-1 flex-col items-center">
-        <div className="mb-0.5 flex items-center gap-2 text-[11px] text-neutral-400">
-          <span>{en ? "Landing date:" : "Fecha de aterrizaje:"}</span>
-          <span className="font-mono font-semibold text-white">{formatDate(timeMs, lang)}</span>
+        <div className="mb-0.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] text-neutral-400">
+          <span>
+            {en ? "Launch (T-0):" : "Lanzamiento (T-0):"}{" "}
+            <strong className="font-mono font-semibold text-neutral-200">{formatDate(timeMs, lang)}</strong>
+          </span>
+          <span className="font-mono text-neutral-500">➔ +{transitDays}d ➔</span>
+          <span>
+            {en ? "Touchdown:" : "Alunizaje:"}{" "}
+            <strong className="font-mono font-semibold text-white">{formatDate(touchdownMs, lang)}</strong>
+          </span>
         </div>
 
         <div className="relative flex w-full max-w-2xl items-center">
@@ -99,7 +171,7 @@ export default function TimelineBar() {
             step={stepMs}
             value={timeMs}
             onChange={(e) => setTime(Number(e.target.value))}
-            aria-label="Control maestro de fecha de aterrizaje"
+            aria-label="Control maestro de fecha de lanzamiento y alunizaje"
             className="horizon-range relative z-10 w-full"
             style={{ ["--pct" as string]: `${pct}%` }}
           />

@@ -1,10 +1,13 @@
 "use client";
 
 import { findNextCrisis, indexAt } from "@/lib/engine/timeline";
+import { formatDate, formatShortDay } from "@/lib/scene";
 import { DEFAULT_VEHICLE, VEHICLES } from "@/lib/vehicles";
-import { useMissionStore } from "@/store/useMissionStore";
+import { TRANSIT_PROFILES, useMissionStore } from "@/store/useMissionStore";
 
 const DELAYS = [24, 48, 72];
+const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
 
 function toDatetimeLocalUTC(ms: number): string {
   const d = new Date(ms);
@@ -21,12 +24,14 @@ function fromDatetimeLocalUTC(val: string): number | null {
 export default function MissionSetupPanel() {
   const data = useMissionStore((s) => s.data);
   const timeMs = useMissionStore((s) => s.timeMs);
+  const transitDays = useMissionStore((s) => s.transitDays);
   const delayHours = useMissionStore((s) => s.delayHours);
   const landingSite = useMissionStore((s) => s.landingSite);
   const vehicleId = useMissionStore((s) => s.vehicleId);
   const lang = useMissionStore((s) => s.lang);
   const en = lang === "en";
   const setTime = useMissionStore((s) => s.setTime);
+  const setTransitDays = useMissionStore((s) => s.setTransitDays);
   const setDelay = useMissionStore((s) => s.setDelay);
   const setLandingSite = useMissionStore((s) => s.setLandingSite);
   const setVehicle = useMissionStore((s) => s.setVehicle);
@@ -36,16 +41,25 @@ export default function MissionSetupPanel() {
   if (!data) return null;
 
   const { t0Ms, t1Ms, stepMs } = data.timeline;
+  const transitMs = transitDays * DAY_MS;
+  const delayMs = delayHours * HOUR_MS;
   const minStr = toDatetimeLocalUTC(t0Ms);
-  const maxStr = toDatetimeLocalUTC(t1Ms - delayHours * 3.6e6);
+  const maxStr = toDatetimeLocalUTC(t1Ms - transitMs - delayMs);
   const distKm = Math.hypot(landingSite.x, landingSite.y);
+  const nominalTouchdownMs = timeMs + transitMs;
+  const delayedLaunchMs = timeMs + delayMs;
+  const delayedTouchdownMs = nominalTouchdownMs + delayMs;
 
   const suggestCrisis = () => {
-    const idx = indexAt(data.timeline, timeMs) + 1;
-    const delaySteps = Math.round((delayHours * 3.6e6) / stepMs);
-    let hit = findNextCrisis(data.vis, idx, delaySteps);
-    if (hit < 0) hit = findNextCrisis(data.vis, 0, delaySteps);
-    if (hit >= 0) setTime(t0Ms + hit * stepMs);
+    const minTouchdownIdx = Math.ceil(transitMs / stepMs);
+    const currentTouchdownIdx = Math.max(
+      minTouchdownIdx,
+      indexAt(data.timeline, nominalTouchdownMs) + 1,
+    );
+    const delaySteps = Math.round(delayMs / stepMs);
+    let hit = findNextCrisis(data.vis, currentTouchdownIdx, delaySteps);
+    if (hit < 0) hit = findNextCrisis(data.vis, minTouchdownIdx, delaySteps);
+    if (hit >= 0) setTime(t0Ms + hit * stepMs - transitMs);
   };
 
   return (
@@ -99,11 +113,16 @@ export default function MissionSetupPanel() {
           </div>
         </div>
 
-        {/* 2. Date & Time */}
+        {/* 2. Launch Date & Transit Profile */}
         <div className="rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
-          <label htmlFor="launch-dt" className="block text-[10px] font-semibold tracking-[0.12em] text-neutral-300">
-            {en ? "2. LAUNCH DATE & TIME (UTC)" : "2. FECHA Y HORA DE LANZAMIENTO (UTC)"}
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="launch-dt" className="block text-[10px] font-semibold tracking-[0.12em] text-neutral-300">
+              {en ? "2. LAUNCH DATE (T-0 UTC)" : "2. FECHA DE LANZAMIENTO (T-0 UTC)"}
+            </label>
+            <span className="font-mono text-[9px] text-neutral-500">
+              +{transitDays}d {en ? "transit" : "tránsito"}
+            </span>
+          </div>
           <input
             id="launch-dt"
             type="datetime-local"
@@ -116,12 +135,59 @@ export default function MissionSetupPanel() {
             }}
             className="mt-2 w-full rounded border border-neutral-700 bg-[#111111] px-2.5 py-1.5 font-mono text-xs text-white outline-none focus:border-white"
           />
+
+          <div className="mt-2.5">
+            <div className="mb-1.5 text-[9px] font-semibold tracking-[0.12em] text-neutral-400">
+              {en ? "TRANSIT PROFILE (EARTH ➔ MOON)" : "PERFIL DE TRÁNSITO (TIERRA ➔ LUNA)"}
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {TRANSIT_PROFILES.map((tp) => {
+                const active = transitDays === tp.days;
+                return (
+                  <button
+                    key={tp.days}
+                    type="button"
+                    onClick={() => setTransitDays(tp.days)}
+                    title={en ? tp.descEn : tp.descEs}
+                    className={`rounded border px-1.5 py-1.5 font-mono text-[10px] font-semibold transition ${
+                      active
+                        ? "border-white bg-white text-black"
+                        : "border-neutral-800 bg-[#111111] text-neutral-400 hover:border-neutral-600 hover:text-neutral-200"
+                    }`}
+                  >
+                    {en ? tp.shortEn : tp.shortEs}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-2.5 space-y-1 rounded border border-neutral-800 bg-[#111111] px-2.5 py-2 font-mono text-[10px]">
+            <div className="flex items-center justify-between text-neutral-300">
+              <span className="text-neutral-500">{en ? "NOMINAL:" : "NOMINAL:"}</span>
+              <span>
+                {formatShortDay(timeMs, lang)} ➔{" "}
+                <strong className="text-white">{formatShortDay(nominalTouchdownMs, lang)}</strong>
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-neutral-300">
+              <span className="text-amber-400/90">+{delayHours}H:</span>
+              <span>
+                {formatShortDay(delayedLaunchMs, lang)} ➔{" "}
+                <strong className="text-amber-300">{formatShortDay(delayedTouchdownMs, lang)}</strong>
+              </span>
+            </div>
+            <div className="border-t border-neutral-800/80 pt-1 text-[9px] text-neutral-500">
+              {en ? "Lunar touchdown:" : "Alunizaje nominal:"} {formatDate(nominalTouchdownMs, lang)}
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={suggestCrisis}
             className="mt-2 w-full rounded border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-[10px] font-medium text-neutral-200 transition hover:border-neutral-500 hover:bg-neutral-800"
           >
-            {en ? "Find date with delay crisis" : "Buscar fecha con crisis de retraso"}
+            {en ? "Find launch date with delay crisis" : "Buscar lanzamiento con crisis de retraso"}
           </button>
         </div>
 
