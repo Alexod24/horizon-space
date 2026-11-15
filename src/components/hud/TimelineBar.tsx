@@ -52,6 +52,8 @@ export default function TimelineBar() {
   const setAdvancedHud = useMissionStore((s) => s.setAdvancedHud);
   const setSevenDayAlertOpen = useMissionStore((s) => s.setSevenDayAlertOpen);
   const setAllowBeyond7Days = useMissionStore((s) => s.setAllowBeyond7Days);
+  const setReportReady = useMissionStore((s) => s.setReportReady);
+  const setReportModalOpen = useMissionStore((s) => s.setReportModalOpen);
 
   useEffect(() => {
     if (!playing || !data) return;
@@ -68,6 +70,7 @@ export default function TimelineBar() {
         setTime(missionEndMs, false);
         setPlaying(false);
         setSevenDayAlertOpen(true);
+        setReportReady(true);
         return;
       }
       if (next >= maxMs) {
@@ -79,7 +82,7 @@ export default function TimelineBar() {
       raf = requestAnimationFrame(step);
     });
     return () => cancelAnimationFrame(raf);
-  }, [playing, data, setTime, setPlaying, setSevenDayAlertOpen]);
+  }, [playing, data, setTime, setPlaying, setSevenDayAlertOpen, setReportReady]);
 
   if (!data) return null;
 
@@ -347,16 +350,26 @@ export default function TimelineBar() {
             <p className="text-[11px] leading-snug text-neutral-200">
               <strong className="text-amber-300">
                 {en
-                  ? "7-day guaranteed mission completed: "
-                  : "¡Se cumplieron los 7 días asegurados de la misión! "}
+                  ? "7-day mission completed & Mission Report ready: "
+                  : "¡Se cumplieron los 7 días asegurados y se creó tu Informe de Misión! "}
               </strong>
               {en
-                ? "Simulation paused automatically after the first week on the Moon. Click the Play button (▶) if you want to keep watching into the lunar night."
-                : "La simulación se detuvo automáticamente porque ya se cumplieron los 7 días. Si deseas seguir viendo la simulación, dale clic al botón de Play (▶)."}
+                ? "We generated your 7-day results summary on the right panel. Click Play (▶) if you want to keep watching into the lunar night."
+                : "Ya puedes revisar el informe de resultados en el panel derecho. Si deseas seguir viendo la simulación hacia la noche lunar, dale clic al botón de Play (▶)."}
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setReportModalOpen(true);
+                document.getElementById("mission-report-card")?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="rounded border border-emerald-400/80 bg-emerald-500 px-3 py-1 text-[11px] font-bold text-black transition hover:bg-emerald-400"
+            >
+              📄 {en ? "View Report" : "Ver Informe"}
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -373,6 +386,7 @@ export default function TimelineBar() {
               onClick={() => {
                 setSevenDayAlertOpen(false);
                 setAllowBeyond7Days(false);
+                setReportReady(false);
                 setTime(plannedLaunchMs, false);
               }}
               className="rounded border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] text-neutral-300 transition hover:border-neutral-500 hover:text-white"

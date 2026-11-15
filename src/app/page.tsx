@@ -5,13 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { CompactMetricsCard, DetailedMetricsCards } from "@/components/hud/CriticalMetrics";
 import LandingPage from "@/components/hud/LandingPage";
 import MissionHeader from "@/components/hud/MissionHeader";
+import { MissionReportCard, MissionReportModal } from "@/components/hud/MissionReport";
 import MissionSetupPanel from "@/components/hud/MissionSetupPanel";
 import OperationalAlert from "@/components/hud/OperationalAlert";
 import SiteSidebar from "@/components/hud/SiteSidebar";
 import TimelineBar from "@/components/hud/TimelineBar";
 import { loadOrbitalTimeline, loadTerrain, loadTerrainContext } from "@/lib/engine/data";
 import { buildHorizonMask } from "@/lib/engine/occlusion";
-import { computeVisibility, findNextCrisis } from "@/lib/engine/timeline";
+import { computeVisibility } from "@/lib/engine/timeline";
 import { buildPlaceholderTerrain } from "@/lib/placeholderTerrain";
 import { formatCoord, formatShortDay } from "@/lib/scene";
 import { LUNAR_LANDMARKS } from "@/lib/landmarks";
@@ -286,13 +287,9 @@ export default function Home() {
         const contextTerrain = await loadTerrainContext("/data/terrain_context.json");
         const vis = computeVisibility(timeline, mask, maskStep);
         const defaultTransitMs = 7 * 86_400_000;
-        const minTouchdownIdx = Math.ceil(defaultTransitMs / timeline.stepMs);
-        const delaySteps = Math.round((48 * 3.6e6) / timeline.stepMs);
-        const firstCrisis = findNextCrisis(vis, minTouchdownIdx, delaySteps);
-        const startMs =
-          firstCrisis >= minTouchdownIdx
-            ? timeline.t0Ms + firstCrisis * timeline.stepMs - defaultTransitMs
-            : timeline.t0Ms;
+        const maxLaunchMs = timeline.t1Ms - defaultTransitMs - 72 * 3_600_000;
+        const nowRoundedMs = Math.floor(Date.now() / timeline.stepMs) * timeline.stepMs;
+        const startMs = Math.min(Math.max(nowRoundedMs, timeline.t0Ms), maxLaunchMs);
 
         if (!cancelled) {
           setData({ timeline, terrain, contextTerrain, mask, maskStep, vis, terrainSource }, startMs);
@@ -401,6 +398,7 @@ export default function Home() {
 
             {/* Right operational column */}
             <aside className="flex w-full shrink-0 flex-col gap-3 lg:w-64 lg:overflow-y-auto">
+              <MissionReportCard />
               {!compare && <DetailedMetricsCards offsetHours={0} />}
               <OperationalAlert />
 
@@ -496,6 +494,7 @@ export default function Home() {
           </div>
         </div>
       )}
+      <MissionReportModal />
     </main>
   );
 }

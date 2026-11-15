@@ -95,6 +95,10 @@ interface MissionState {
   sevenDayAlertOpen: boolean;
   /** True if the user chose to continue playing past the 7-day window. */
   allowBeyond7Days: boolean;
+  /** True once the 7-day simulation completes so the right-hand Mission Report is shown. */
+  reportReady: boolean;
+  /** True when the detailed Mission Report modal is open. */
+  reportModalOpen: boolean;
   /** Distance (km) if user clicked outside the 15 km South Pole landing zone. */
   outOfBoundsKm: number | null;
   setData: (d: MissionData, startMs: number) => void;
@@ -120,6 +124,8 @@ interface MissionState {
   setSpeed: (s: number) => void;
   setSevenDayAlertOpen: (v: boolean) => void;
   setAllowBeyond7Days: (v: boolean) => void;
+  setReportReady: (v: boolean) => void;
+  setReportModalOpen: (v: boolean) => void;
   setOutOfBoundsKm: (km: number | null) => void;
 }
 
@@ -148,6 +154,8 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   speed: 6,
   sevenDayAlertOpen: false,
   allowBeyond7Days: false,
+  reportReady: false,
+  reportModalOpen: false,
   outOfBoundsKm: null,
   setData: (data, startMs) => {
     const h0 = sampleHeight(data.terrain, 0, 0);
@@ -162,12 +170,21 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   setError: (error) => set({ status: "error", error }),
   setTime: (timeMs, anchor = true) =>
     set((s) => {
-      if (!s.data) return anchor ? { timeMs, plannedLaunchMs: timeMs, sevenDayAlertOpen: false, allowBeyond7Days: false } : { timeMs };
+      if (!s.data)
+        return anchor
+          ? { timeMs, plannedLaunchMs: timeMs, sevenDayAlertOpen: false, allowBeyond7Days: false, reportReady: false }
+          : { timeMs };
       const { t0Ms, t1Ms } = s.data.timeline;
       const maxLaunchMs = t1Ms - s.transitDays * DAY_MS - s.delayHours * HOUR_MS;
       const clamped = Math.min(Math.max(timeMs, t0Ms), maxLaunchMs);
       return anchor
-        ? { timeMs: clamped, plannedLaunchMs: clamped, sevenDayAlertOpen: false, allowBeyond7Days: false }
+        ? {
+            timeMs: clamped,
+            plannedLaunchMs: clamped,
+            sevenDayAlertOpen: false,
+            allowBeyond7Days: false,
+            reportReady: false,
+          }
         : { timeMs: clamped };
     }),
   setTransitDays: (transitDays) =>
@@ -199,7 +216,12 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   triggerCenter: () => set((s) => ({ centerTrigger: s.centerTrigger + 1 })),
   setSelectedLandmarkId: (selectedLandmarkId) => set({ selectedLandmarkId }),
   setEnteredApp: (enteredApp) => set({ enteredApp }),
-  setMissionStarted: (missionStarted) => set({ missionStarted }),
+  setMissionStarted: (missionStarted) =>
+    set(
+      missionStarted
+        ? { missionStarted }
+        : { missionStarted, sevenDayAlertOpen: false, allowBeyond7Days: false, reportReady: false, reportModalOpen: false },
+    ),
   setAdvancedHud: (advancedHud) => set({ advancedHud }),
   setLandingSite: (xKm, yKm) => {
     const d = get().data;
@@ -240,5 +262,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   setSpeed: (speed) => set({ speed }),
   setSevenDayAlertOpen: (sevenDayAlertOpen) => set({ sevenDayAlertOpen }),
   setAllowBeyond7Days: (allowBeyond7Days) => set({ allowBeyond7Days }),
+  setReportReady: (reportReady) => set({ reportReady }),
+  setReportModalOpen: (reportModalOpen) => set({ reportModalOpen }),
   setOutOfBoundsKm: (outOfBoundsKm) => set({ outOfBoundsKm }),
 }));

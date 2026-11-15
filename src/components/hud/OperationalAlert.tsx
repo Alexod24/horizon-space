@@ -25,7 +25,7 @@ export function ViabilityVerdictCard() {
 
   const evalLaunchMs =
     missionStarted &&
-    (timeMs > plannedLaunchMs + 7 * 86_400_000 || Boolean(nominal?.occ.any || crisis?.occ.any))
+      (timeMs > plannedLaunchMs + 7 * 86_400_000 || Boolean(nominal?.occ.any || crisis?.occ.any))
       ? timeMs
       : plannedLaunchMs;
 
@@ -98,8 +98,8 @@ export function ViabilityVerdictCard() {
 
   const resilienceDetail = viability.delayThermalFreeze
     ? en
-      ? `❌ CRITICAL (Thermal freeze >${veh.maxDarkHours}h)`
-      : `❌ CRÍTICO (Apagón térmico >${veh.maxDarkHours}h)`
+      ? `CRITICAL (Thermal freeze >${veh.maxDarkHours}h)`
+      : `CRÍTICO (Apagón térmico >${veh.maxDarkHours}h)`
     : viability.delayOccluded
       ? en
         ? `⚠ Occluded at +${delayHours}h touchdown`
@@ -253,7 +253,7 @@ export default function OperationalAlert() {
 
   const evalLaunchMs =
     missionStarted &&
-    (timeMs > plannedLaunchMs + 7 * 86_400_000 || Boolean(nominal?.occ.any || crisis?.occ.any))
+      (timeMs > plannedLaunchMs + 7 * 86_400_000 || Boolean(nominal?.occ.any || crisis?.occ.any))
       ? timeMs
       : plannedLaunchMs;
 

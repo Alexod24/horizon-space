@@ -153,7 +153,7 @@ export default function MissionSetupPanel() {
                     type="button"
                     onClick={() => setTransitDays(tp.days)}
                     title={en ? tp.descEn : tp.descEs}
-                    className={`rounded border px-1.5 py-1.5 font-mono text-[10px] font-semibold transition ${
+                    className={`flex items-center justify-center rounded border px-1 py-1.5 text-center font-mono text-[10px] font-semibold leading-tight transition ${
                       active
                         ? "border-white bg-white text-black"
                         : "border-neutral-800 bg-[#111111] text-neutral-400 hover:border-neutral-600 hover:text-neutral-200"
