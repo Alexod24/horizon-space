@@ -53,50 +53,51 @@ function ViewportCard({
   };
 
   return (
-    <div ref={cardRef} className="relative min-h-0 flex-1 overflow-hidden rounded-md border border-neutral-800 bg-[#0a0a0a]">
+    <div ref={cardRef} className="relative min-h-[300px] flex-1 overflow-hidden rounded-md border border-neutral-800 bg-[#0a0a0a] sm:min-h-[360px] lg:min-h-0">
       <HorizonScene offsetHours={offsetHours} ghostOffsetHours={ghostOffsetHours} />
 
-      {/* Top-left viewport label */}
-      <div className="pointer-events-none absolute left-3 top-3 z-10 rounded border border-neutral-800 bg-[#141414]/85 px-2.5 py-1.5 backdrop-blur-sm">
-        <div className="text-[11px] font-semibold tracking-wide text-neutral-100">{title}</div>
-        <div className="font-mono text-[10px] text-neutral-400">COORDS: {coords} · CÚPULA R = 15 KM</div>
-      </div>
+      {/* Top overlay bar (responsive wrap so label and buttons never collide on mobile) */}
+      <div className="pointer-events-none absolute left-2.5 right-2.5 top-2.5 z-10 flex flex-wrap items-start justify-between gap-2 sm:left-3 sm:right-3 sm:top-3">
+        <div className="max-w-full rounded border border-neutral-800 bg-[#141414]/85 px-2.5 py-1.5 backdrop-blur-sm">
+          <div className="text-[10px] font-semibold tracking-wide text-neutral-100 sm:text-[11px]">{title}</div>
+          <div className="font-mono text-[9px] text-neutral-400 sm:text-[10px]">COORDS: {coords} · CÚPULA R = 15 KM</div>
+        </div>
 
-      {/* Top-right viewport controls */}
-      <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5">
-        <button
-          type="button"
-          onClick={() => setIsolatePole(!isolatePole)}
-          title={isolatePole ? "Cambiar a mapa completo (±80 km)" : "Mostrar solo Polo Sur (15 km)"}
-          className={`flex h-7 items-center gap-1 rounded border px-2.5 text-[10px] font-medium backdrop-blur-sm transition ${
-            isolatePole
-              ? "border-neutral-600 bg-neutral-800/90 text-white"
-              : "border-neutral-700 bg-[#141414]/85 text-neutral-300 hover:border-neutral-500 hover:text-white"
-          }`}
-        >
-          {isolatePole ? "Solo Polo Sur" : "Mapa Completo"}
-        </button>
+        <div className="pointer-events-auto flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setIsolatePole(!isolatePole)}
+            title={isolatePole ? "Cambiar a mapa completo (±80 km)" : "Mostrar solo Polo Sur (15 km)"}
+            className={`flex h-7 items-center gap-1 rounded border px-2 text-[10px] font-medium backdrop-blur-sm transition sm:px-2.5 ${
+              isolatePole
+                ? "border-neutral-600 bg-neutral-800/90 text-white"
+                : "border-neutral-700 bg-[#141414]/85 text-neutral-300 hover:border-neutral-500 hover:text-white"
+            }`}
+          >
+            {isolatePole ? "Solo Polo Sur" : "Mapa Completo"}
+          </button>
 
-        <button
-          type="button"
-          onClick={triggerCenter}
-          title="Centrar cámara en el sitio de aterrizaje"
-          aria-label="Centrar cámara en el sitio de aterrizaje"
-          className="flex h-7 items-center gap-1 rounded border border-neutral-700 bg-[#141414]/85 px-2.5 text-[10px] font-medium text-neutral-200 backdrop-blur-sm transition hover:border-neutral-500 hover:bg-neutral-800 hover:text-white"
-        >
-          <span aria-hidden="true">⌖</span>
-          <span>Centrar</span>
-        </button>
+          <button
+            type="button"
+            onClick={triggerCenter}
+            title="Centrar cámara en el sitio de aterrizaje"
+            aria-label="Centrar cámara en el sitio de aterrizaje"
+            className="flex h-7 items-center gap-1 rounded border border-neutral-700 bg-[#141414]/85 px-2 text-[10px] font-medium text-neutral-200 backdrop-blur-sm transition hover:border-neutral-500 hover:bg-neutral-800 hover:text-white sm:px-2.5"
+          >
+            <span aria-hidden="true">⌖</span>
+            <span>Centrar</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={toggleFullscreen}
-          title={isFs ? "Salir de pantalla completa" : "Ver en pantalla completa"}
-          aria-label={isFs ? "Salir de pantalla completa" : "Ver en pantalla completa"}
-          className="flex h-7 w-7 items-center justify-center rounded border border-neutral-700 bg-[#141414]/85 text-xs text-neutral-200 backdrop-blur-sm transition hover:border-neutral-500 hover:bg-neutral-800"
-        >
-          {isFs ? "✕" : "⛶"}
-        </button>
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            title={isFs ? "Salir de pantalla completa" : "Ver en pantalla completa"}
+            aria-label={isFs ? "Salir de pantalla completa" : "Ver en pantalla completa"}
+            className="flex h-7 w-7 items-center justify-center rounded border border-neutral-700 bg-[#141414]/85 text-xs text-neutral-200 backdrop-blur-sm transition hover:border-neutral-500 hover:bg-neutral-800"
+          >
+            {isFs ? "✕" : "⛶"}
+          </button>
+        </div>
       </div>
 
       {/* Out-of-bounds UX alert when clicking outside the 15 km South Pole dome */}
@@ -191,7 +192,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex h-dvh flex-col bg-[#0f0f0f] text-neutral-100">
+    <main className="flex min-h-dvh flex-col bg-[#0f0f0f] text-neutral-100 lg:h-dvh lg:overflow-hidden">
       <MissionHeader />
       {missionStarted && <TimelineBar />}
 
@@ -209,7 +210,7 @@ export default function Home() {
 
       {status === "ready" && data && !missionStarted && (
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-          <div className="flex min-h-0 flex-1 p-3">
+          <div className="flex h-[50vh] min-h-[300px] p-2 sm:p-3 lg:h-auto lg:min-h-0 lg:flex-1">
             <ViewportCard
               title={`SELECCIÓN DE SITIO DE ATERRIZAJE (${site.name}) — HAZ CLIC EN EL CRÁTER`}
               coords={coords}
@@ -222,11 +223,11 @@ export default function Home() {
       )}
 
       {status === "ready" && data && missionStarted && (
-        <div className="flex min-h-0 flex-1">
+        <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
           <SiteSidebar />
 
           {/* Center workspace */}
-          <div className="flex min-h-0 flex-1 flex-col gap-3 p-3 lg:flex-row">
+          <div className="flex min-h-0 flex-1 flex-col gap-3 p-2.5 sm:p-3 lg:flex-row">
             {compare ? (
               <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="flex min-h-0 flex-col gap-2.5">
@@ -260,7 +261,7 @@ export default function Home() {
             )}
 
             {/* Right operational column */}
-            <aside className="flex w-full shrink-0 flex-col gap-3 overflow-y-auto lg:w-64">
+            <aside className="flex w-full shrink-0 flex-col gap-3 lg:w-64 lg:overflow-y-auto">
               {!compare && <DetailedMetricsCards offsetHours={0} />}
               <OperationalAlert />
             </aside>

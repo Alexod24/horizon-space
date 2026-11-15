@@ -46,7 +46,7 @@ export default function MissionSetupPanel() {
   };
 
   return (
-    <aside className="z-20 flex w-full shrink-0 flex-col justify-between gap-4 overflow-y-auto border-l border-neutral-800 bg-[#141414] p-4 text-xs lg:w-80">
+    <aside className="z-20 flex w-full shrink-0 flex-col justify-between gap-4 border-t border-neutral-800 bg-[#141414] p-4 text-xs lg:w-80 lg:overflow-y-auto lg:border-l lg:border-t-0">
       <div className="space-y-4">
         <div>
           <div className="text-[10px] font-semibold tracking-[0.16em] text-neutral-500">FASE 1 · PLANIFICACIÓN</div>

@@ -77,7 +77,7 @@ export default function LandingPage() {
   const setEnteredApp = useMissionStore((s) => s.setEnteredApp);
 
   return (
-    <div className="h-dvh overflow-y-auto scroll-smooth bg-[#0a0a0a] text-neutral-100">
+    <div className="min-h-dvh scroll-smooth bg-[#0a0a0a] text-neutral-100 lg:h-dvh lg:overflow-y-auto">
       {/* Top Navbar */}
       <header className="sticky top-0 z-30 border-b border-neutral-900 bg-[#0a0a0a]/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5 text-xs">
