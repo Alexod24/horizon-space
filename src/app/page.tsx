@@ -75,54 +75,58 @@ function ViewportCard({
         </div>
 
         <div className="pointer-events-auto flex flex-wrap items-center gap-1.5">
-          <div
-            title={en ? "Adjust lunar terrain brightness" : "Ajustar brillo del terreno lunar"}
-            className="flex h-7 items-center gap-1.5 rounded border border-neutral-700 bg-[#141414]/85 px-2 text-[10px] text-neutral-300 backdrop-blur-sm"
-          >
-            <span aria-hidden="true" className="text-neutral-400">☀</span>
-            <input
-              type="range"
-              min={0.5}
-              max={3}
-              step={0.1}
-              value={terrainBrightness}
-              onChange={(e) => setTerrainBrightness(parseFloat(e.target.value))}
-              aria-label={en ? "Lunar terrain brightness" : "Brillo del terreno lunar"}
-              className="horizon-range w-14 sm:w-20"
-              style={{ "--pct": `${((terrainBrightness - 0.5) / 2.5) * 100}%` } as React.CSSProperties}
-            />
-            <span className="w-6 text-right font-mono text-[9px] text-neutral-400">
-              {Math.round(terrainBrightness * 100)}%
-            </span>
-          </div>
+          {!missionStarted && (
+            <>
+              <div
+                title={en ? "Adjust lunar terrain brightness" : "Ajustar brillo del terreno lunar"}
+                className="flex h-7 items-center gap-1.5 rounded border border-neutral-700 bg-[#141414]/85 px-2 text-[10px] text-neutral-300 backdrop-blur-sm"
+              >
+                <span aria-hidden="true" className="text-neutral-400">☀</span>
+                <input
+                  type="range"
+                  min={0.5}
+                  max={3}
+                  step={0.1}
+                  value={terrainBrightness}
+                  onChange={(e) => setTerrainBrightness(parseFloat(e.target.value))}
+                  aria-label={en ? "Lunar terrain brightness" : "Brillo del terreno lunar"}
+                  className="horizon-range w-14 sm:w-20"
+                  style={{ "--pct": `${((terrainBrightness - 0.5) / 2.5) * 100}%` } as React.CSSProperties}
+                />
+                <span className="w-6 text-right font-mono text-[9px] text-neutral-400">
+                  {Math.round(terrainBrightness * 100)}%
+                </span>
+              </div>
 
-          <button
-            type="button"
-            onClick={() => setIsolatePole(!isolatePole)}
-            title={
-              isolatePole
-                ? en ? "Switch to full map (±80 km)" : "Cambiar a mapa completo (±80 km)"
-                : en ? "Show South Pole only (15 km)" : "Mostrar solo Polo Sur (15 km)"
-            }
-            className={`flex h-7 items-center gap-1 rounded border px-2 text-[10px] font-medium backdrop-blur-sm transition sm:px-2.5 ${
-              isolatePole
-                ? "border-neutral-600 bg-neutral-800/90 text-white"
-                : "border-neutral-700 bg-[#141414]/85 text-neutral-300 hover:border-neutral-500 hover:text-white"
-            }`}
-          >
-            {isolatePole ? (en ? "South Pole Only" : "Solo Polo Sur") : (en ? "Full Map" : "Mapa Completo")}
-          </button>
+              <button
+                type="button"
+                onClick={() => setIsolatePole(!isolatePole)}
+                title={
+                  isolatePole
+                    ? en ? "Switch to full map (±80 km)" : "Cambiar a mapa completo (±80 km)"
+                    : en ? "Show South Pole only (15 km)" : "Mostrar solo Polo Sur (15 km)"
+                }
+                className={`flex h-7 items-center gap-1 rounded border px-2 text-[10px] font-medium backdrop-blur-sm transition sm:px-2.5 ${
+                  isolatePole
+                    ? "border-neutral-600 bg-neutral-800/90 text-white"
+                    : "border-neutral-700 bg-[#141414]/85 text-neutral-300 hover:border-neutral-500 hover:text-white"
+                }`}
+              >
+                {isolatePole ? (en ? "South Pole Only" : "Solo Polo Sur") : (en ? "Full Map" : "Mapa Completo")}
+              </button>
 
-          <button
-            type="button"
-            onClick={triggerCenter}
-            title={en ? "Center camera on landing site" : "Centrar cámara en el sitio de aterrizaje"}
-            aria-label={en ? "Center camera on landing site" : "Centrar cámara en el sitio de aterrizaje"}
-            className="flex h-7 items-center gap-1 rounded border border-neutral-700 bg-[#141414]/85 px-2 text-[10px] font-medium text-neutral-200 backdrop-blur-sm transition hover:border-neutral-500 hover:bg-neutral-800 hover:text-white sm:px-2.5"
-          >
-            <span aria-hidden="true">⌖</span>
-            <span>{en ? "Center" : "Centrar"}</span>
-          </button>
+              <button
+                type="button"
+                onClick={triggerCenter}
+                title={en ? "Center camera on landing site" : "Centrar cámara en el sitio de aterrizaje"}
+                aria-label={en ? "Center camera on landing site" : "Centrar cámara en el sitio de aterrizaje"}
+                className="flex h-7 items-center gap-1 rounded border border-neutral-700 bg-[#141414]/85 px-2 text-[10px] font-medium text-neutral-200 backdrop-blur-sm transition hover:border-neutral-500 hover:bg-neutral-800 hover:text-white sm:px-2.5"
+              >
+                <span aria-hidden="true">⌖</span>
+                <span>{en ? "Center" : "Centrar"}</span>
+              </button>
+            </>
+          )}
 
           <button
             type="button"
@@ -221,6 +225,11 @@ export default function Home() {
   const en = lang === "en";
   const selectedLandmarkId = useMissionStore((s) => s.selectedLandmarkId);
   const setSelectedLandmarkId = useMissionStore((s) => s.setSelectedLandmarkId);
+  const isolatePole = useMissionStore((s) => s.isolatePole);
+  const setIsolatePole = useMissionStore((s) => s.setIsolatePole);
+  const terrainBrightness = useMissionStore((s) => s.terrainBrightness);
+  const setTerrainBrightness = useMissionStore((s) => s.setTerrainBrightness);
+  const triggerCenter = useMissionStore((s) => s.triggerCenter);
   const selectedLandmark = LUNAR_LANDMARKS.find((l) => l.id === selectedLandmarkId) ?? null;
   const setData = useMissionStore((s) => s.setData);
   const setError = useMissionStore((s) => s.setError);
@@ -361,6 +370,58 @@ export default function Home() {
             <aside className="flex w-full shrink-0 flex-col gap-3 lg:w-64 lg:overflow-y-auto">
               {!compare && <DetailedMetricsCards offsetHours={0} />}
               <OperationalAlert />
+
+              {/* Shared 3D View Controls (moved out of viewports in Phase 2) */}
+              <div className="rounded-md border border-neutral-800 bg-[#161616] p-3 text-xs">
+                <div className="mb-2.5 text-[10px] font-semibold tracking-[0.14em] text-neutral-400">
+                  {en ? "VIEW CONTROLS" : "CONTROLES DE VISTA"}
+                </div>
+
+                <div className="space-y-2.5">
+                  <div>
+                    <div className="mb-1 flex items-center justify-between text-[11px] text-neutral-400">
+                      <span>☀ {en ? "Terrain brightness" : "Brillo del terreno"}</span>
+                      <span className="font-mono text-[10px] text-white">
+                        {Math.round(terrainBrightness * 100)}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0.5}
+                      max={3}
+                      step={0.1}
+                      value={terrainBrightness}
+                      onChange={(e) => setTerrainBrightness(parseFloat(e.target.value))}
+                      aria-label={en ? "Lunar terrain brightness" : "Brillo del terreno lunar"}
+                      className="horizon-range w-full"
+                      style={{ "--pct": `${((terrainBrightness - 0.5) / 2.5) * 100}%` } as React.CSSProperties}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setIsolatePole(!isolatePole)}
+                      className={`rounded border px-2 py-1.5 text-[10px] font-medium transition ${
+                        isolatePole
+                          ? "border-white bg-white font-semibold text-black"
+                          : "border-neutral-700 bg-neutral-900 text-neutral-200 hover:border-neutral-500"
+                      }`}
+                    >
+                      {isolatePole ? (en ? "South Pole Only" : "Solo Polo Sur") : (en ? "Full Map" : "Mapa Completo")}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={triggerCenter}
+                      className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-[10px] font-medium text-neutral-200 transition hover:border-neutral-500 hover:bg-neutral-800 hover:text-white"
+                    >
+                      ⌖ {en ? "Center Site" : "Centrar Sitio"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {selectedLandmark && (
                 <div className="rounded-md border border-neutral-800 bg-[#161616] p-3 text-xs text-neutral-100">
                   <div className="mb-2 flex items-center justify-between">
