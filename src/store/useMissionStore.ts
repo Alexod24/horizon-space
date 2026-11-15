@@ -27,8 +27,10 @@ interface MissionState {
   delayHours: number;
   compare: boolean;
   terrainMode: TerrainMode;
+  terrainBrightness: number;
   isolatePole: boolean;
   centerTrigger: number;
+  selectedLandmarkId: string | null;
   enteredApp: boolean;
   missionStarted: boolean;
   /** Landing site offset in km from zone centre (x = East, y = North). */
@@ -44,8 +46,10 @@ interface MissionState {
   setDelay: (h: number) => void;
   setCompare: (c: boolean) => void;
   setTerrainMode: (m: TerrainMode) => void;
+  setTerrainBrightness: (v: number) => void;
   setIsolatePole: (v: boolean) => void;
   triggerCenter: () => void;
+  setSelectedLandmarkId: (id: string | null) => void;
   setEnteredApp: (v: boolean) => void;
   setMissionStarted: (v: boolean) => void;
   setLandingSite: (xKm: number, yKm: number) => void;
@@ -64,8 +68,10 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   delayHours: 48,
   compare: true,
   terrainMode: "realistic",
+  terrainBrightness: 1,
   isolatePole: true,
   centerTrigger: 0,
+  selectedLandmarkId: null,
   enteredApp: false,
   missionStarted: false,
   landingSite: { x: 0, y: 0, elevationM: 0 },
@@ -91,8 +97,10 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   setDelay: (delayHours) => set({ delayHours }),
   setCompare: (compare) => set({ compare }),
   setTerrainMode: (terrainMode) => set({ terrainMode }),
+  setTerrainBrightness: (terrainBrightness) => set({ terrainBrightness: Math.min(3, Math.max(0.5, terrainBrightness)) }),
   setIsolatePole: (isolatePole) => set({ isolatePole }),
   triggerCenter: () => set((s) => ({ centerTrigger: s.centerTrigger + 1 })),
+  setSelectedLandmarkId: (selectedLandmarkId) => set({ selectedLandmarkId }),
   setEnteredApp: (enteredApp) => set({ enteredApp }),
   setMissionStarted: (missionStarted) => set({ missionStarted }),
   setLandingSite: (xKm, yKm) => {

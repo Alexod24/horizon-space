@@ -9,6 +9,7 @@ import { findImpactDistance, maskHorizonAt, sampleHeight, type AzEl, type Terrai
 import { COLORS, DOME_R, TERRAIN_RADIUS, VERT_EXAG, exaggerateEl, skyPoint } from "@/lib/scene";
 import { getEarthTexture, getMoonRegolithTexture, getSunCoronaTexture, getSunTexture } from "@/lib/textures";
 import { useScenario, type ScenarioState } from "@/lib/useScenario";
+import { LUNAR_LANDMARKS } from "@/lib/landmarks";
 import { findVehicle } from "@/lib/vehicles";
 import { useMissionStore } from "@/store/useMissionStore";
 
@@ -69,7 +70,7 @@ function Terrain({ terrain, contextTerrain }: { terrain: TerrainMatrix; contextT
   const moonMap = useMemo(() => getMoonRegolithTexture(), []);
   const innerGeo = useMemo(() => buildTerrainGeometry(terrain, 0, TERRAIN_RADIUS, 110, 240), [terrain]);
   const outerGeo = useMemo(
-    () => (contextTerrain ? buildTerrainGeometry(contextTerrain, TERRAIN_RADIUS - 0.3, 76, 48, 128) : null),
+    () => (contextTerrain ? buildTerrainGeometry(contextTerrain, TERRAIN_RADIUS - 0.15, 78, 160, 240) : null),
     [contextTerrain],
   );
 
@@ -87,7 +88,7 @@ function Terrain({ terrain, contextTerrain }: { terrain: TerrainMatrix; contextT
         }}
       >
         {realistic ? (
-          <meshStandardMaterial map={moonMap} color="#b8bcc2" roughness={0.98} metalness={0.02} />
+          <meshStandardMaterial map={moonMap} color="#b0b4ba" roughness={0.98} metalness={0.02} />
         ) : (
           <meshStandardMaterial vertexColors roughness={0.92} metalness={0.05} />
         )}
@@ -110,7 +111,7 @@ function Terrain({ terrain, contextTerrain }: { terrain: TerrainMatrix; contextT
           }}
         >
           {realistic ? (
-            <meshStandardMaterial map={moonMap} color="#969aa1" roughness={0.98} metalness={0} />
+            <meshStandardMaterial map={moonMap} color="#b0b4ba" roughness={0.98} metalness={0} />
           ) : (
             <meshStandardMaterial vertexColors color="#7d8a9c" roughness={0.96} metalness={0} />
           )}
@@ -338,6 +339,72 @@ function CelestialBody({
   );
 }
 
+function LandmarkPins({ terrain }: { terrain: TerrainMatrix }) {
+  const selectedId = useMissionStore((s) => s.selectedLandmarkId);
+  const setSelectedId = useMissionStore((s) => s.setSelectedLandmarkId);
+
+  const items = useMemo(
+    () =>
+      LUNAR_LANDMARKS.map((lm) => {
+        const hRaw = sampleHeight(terrain, lm.xKm * 1000, lm.yKm * 1000);
+        const y = ((Number.isNaN(hRaw) ? 0 : hRaw) / 1000) * VERT_EXAG;
+        return { ...lm, y };
+      }),
+    [terrain],
+  );
+
+  return (
+    <group>
+      {items.map((lm) => {
+        const active = selectedId === lm.id;
+        return (
+          <group key={lm.id} position={[lm.xKm, lm.y, -lm.yKm]}>
+            <Line
+              points={[new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1.25, 0)]}
+              color={active ? "#ffffff" : "#a3a3a3"}
+              lineWidth={1}
+              transparent
+              opacity={active ? 0.9 : 0.45}
+            />
+            <Billboard position={[0, 1.45, 0]}>
+              <mesh
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedId(active ? null : lm.id);
+                }}
+                onPointerOver={(e) => {
+                  e.stopPropagation();
+                  document.body.style.cursor = "pointer";
+                }}
+                onPointerOut={() => {
+                  document.body.style.cursor = "auto";
+                }}
+              >
+                <circleGeometry args={[0.42, 32]} />
+                <meshBasicMaterial color={active ? "#ffffff" : "#161618"} transparent opacity={0.92} />
+              </mesh>
+              <mesh position={[0, 0, 0.005]}>
+                <ringGeometry args={[0.41, 0.47, 32]} />
+                <meshBasicMaterial color={active ? "#ffffff" : "#a3a3a3"} />
+              </mesh>
+              <Text
+                position={[0, 0, 0.01]}
+                fontSize={0.48}
+                fontWeight={700}
+                color={active ? "#0a0a0a" : "#ffffff"}
+                anchorX="center"
+                anchorY="middle"
+              >
+                ?
+              </Text>
+            </Billboard>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 function SiteMarker() {
   return (
     <group>
@@ -458,6 +525,7 @@ function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOf
   const controlsRef = useRef<ComponentRef<typeof OrbitControls> | null>(null);
   const data = useMissionStore((s) => s.data)!;
   const isolatePole = useMissionStore((s) => s.isolatePole);
+  const terrainBrightness = useMissionStore((s) => s.terrainBrightness);
   const landingSite = useMissionStore((s) => s.landingSite);
   const vehicleId = useMissionStore((s) => s.vehicleId);
   const veh = findVehicle(vehicleId);
@@ -486,11 +554,11 @@ function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOf
     <>
       <color attach="background" args={["#0a0a0a"]} />
       {!isolatePole && <fog attach="fog" args={["#0a0a0a", 34, 78]} />}
-      <ambientLight intensity={0.18} color="#d4d4d4" />
-      <hemisphereLight args={["#e5e5e5", "#0a0a0a", 0.25]} />
+      <ambientLight intensity={0.18 * terrainBrightness} color="#d4d4d4" />
+      <hemisphereLight args={["#e5e5e5", "#0a0a0a", 0.25 * terrainBrightness]} />
       <directionalLight
         position={sunPos}
-        intensity={sc.occ.sun ? 0.6 : 2.4}
+        intensity={(sc.occ.sun ? 0.6 : 2.4) * Math.max(0.6, terrainBrightness * 0.85)}
         color="#ffe2b8"
         castShadow
         shadow-mapSize={[2048, 2048]}
@@ -506,6 +574,7 @@ function Scene({ offsetHours, ghostOffsetHours }: { offsetHours: number; ghostOf
 
       <Terrain terrain={data.terrain} contextTerrain={data.contextTerrain} />
       <SkyDome mask={data.mask} maskStep={data.maskStep} />
+      <LandmarkPins terrain={data.terrain} />
       <group position={[landingSite.x, siteY, -landingSite.y]}>
         <SiteMarker />
       </group>

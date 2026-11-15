@@ -14,6 +14,7 @@ import { buildHorizonMask } from "@/lib/engine/occlusion";
 import { computeVisibility, findNextCrisis } from "@/lib/engine/timeline";
 import { buildPlaceholderTerrain } from "@/lib/placeholderTerrain";
 import { formatCoord } from "@/lib/scene";
+import { LUNAR_LANDMARKS } from "@/lib/landmarks";
 import { SITES } from "@/lib/sites";
 import { useMissionStore } from "@/store/useMissionStore";
 
@@ -36,7 +37,12 @@ function ViewportCard({
   const setOutOfBoundsKm = useMissionStore((s) => s.setOutOfBoundsKm);
   const isolatePole = useMissionStore((s) => s.isolatePole);
   const setIsolatePole = useMissionStore((s) => s.setIsolatePole);
+  const terrainBrightness = useMissionStore((s) => s.terrainBrightness);
+  const setTerrainBrightness = useMissionStore((s) => s.setTerrainBrightness);
+  const selectedLandmarkId = useMissionStore((s) => s.selectedLandmarkId);
+  const setSelectedLandmarkId = useMissionStore((s) => s.setSelectedLandmarkId);
   const triggerCenter = useMissionStore((s) => s.triggerCenter);
+  const selectedLandmark = LUNAR_LANDMARKS.find((l) => l.id === selectedLandmarkId) ?? null;
   const cardRef = useRef<HTMLDivElement>(null);
   const [isFs, setIsFs] = useState(false);
 
@@ -63,7 +69,28 @@ function ViewportCard({
           <div className="font-mono text-[9px] text-neutral-400 sm:text-[10px]">COORDS: {coords} · CÚPULA R = 15 KM</div>
         </div>
 
-        <div className="pointer-events-auto flex items-center gap-1.5">
+        <div className="pointer-events-auto flex flex-wrap items-center gap-1.5">
+          <div
+            title="Ajustar brillo del terreno lunar"
+            className="flex h-7 items-center gap-1.5 rounded border border-neutral-700 bg-[#141414]/85 px-2 text-[10px] text-neutral-300 backdrop-blur-sm"
+          >
+            <span aria-hidden="true" className="text-neutral-400">☀</span>
+            <input
+              type="range"
+              min={0.5}
+              max={3}
+              step={0.1}
+              value={terrainBrightness}
+              onChange={(e) => setTerrainBrightness(parseFloat(e.target.value))}
+              aria-label="Brillo del terreno lunar"
+              className="horizon-range w-14 sm:w-20"
+              style={{ "--pct": `${((terrainBrightness - 0.5) / 2.5) * 100}%` } as React.CSSProperties}
+            />
+            <span className="w-6 text-right font-mono text-[9px] text-neutral-400">
+              {Math.round(terrainBrightness * 100)}%
+            </span>
+          </div>
+
           <button
             type="button"
             onClick={() => setIsolatePole(!isolatePole)}
@@ -118,6 +145,36 @@ function ViewportCard({
           >
             ✕
           </button>
+        </div>
+      )}
+
+      {/* Educational landmark popover when clicking a "?" pin */}
+      {selectedLandmark && (
+        <div className="absolute bottom-9 left-3 z-20 w-72 max-w-[calc(100%-1.5rem)] rounded-md border border-neutral-700 bg-[#141414]/95 p-3 text-xs text-neutral-100 shadow-2xl backdrop-blur-md">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white text-[11px] font-bold text-black">
+                ?
+              </span>
+              <div>
+                <div className="font-semibold leading-tight text-white">{selectedLandmark.name}</div>
+                <div className="font-mono text-[9px] text-neutral-400">{selectedLandmark.subtitle}</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelectedLandmarkId(null)}
+              aria-label="Cerrar información"
+              className="text-neutral-400 transition hover:text-white"
+            >
+              ✕
+            </button>
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-neutral-300">{selectedLandmark.desc}</p>
+          <div className="mt-2 rounded border border-neutral-800 bg-[#1b1b1e] px-2 py-1.5 text-[10px] text-neutral-300">
+            <span className="font-mono font-semibold text-white">DATO: </span>
+            {selectedLandmark.fact}
+          </div>
         </div>
       )}
 
