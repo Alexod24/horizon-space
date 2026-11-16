@@ -122,7 +122,6 @@ export function ViabilityVerdictCard() {
         </span>
       </div>
 
-      {/* Main Score + Bar */}
       <div className="mt-1.5 flex items-baseline justify-between">
         <div className={`font-mono text-xl font-bold ${tierBadge.scoreColor}`}>
           {viability.score.toFixed(1)}%
@@ -141,7 +140,6 @@ export function ViabilityVerdictCard() {
         />
       </div>
 
-      {/* 3 Sub-metrics */}
       <div className="mt-2.5 space-y-1.5 border-t border-neutral-800/80 pt-2 text-[11px]">
         <div className="flex items-center justify-between gap-2">
           <span className="text-neutral-400">{en ? "Solar Window:" : "Ventana Solar:"}</span>
@@ -176,7 +174,6 @@ export function ViabilityVerdictCard() {
         </div>
       </div>
 
-      {/* 7-Day Guaranteed Window Explanation */}
       <div className="mt-2.5 rounded border border-neutral-800 bg-[#121212] px-2.5 py-2 text-[10px] leading-relaxed text-neutral-400">
         <strong className="text-neutral-200">
           {en ? "7 Guaranteed Days (168 h): " : "7 días asegurados (168 h): "}
@@ -186,7 +183,6 @@ export function ViabilityVerdictCard() {
           : "Esta ventana asegura luz solar y señal durante la primera semana en la Luna. Pasados los 7 días, el ciclo lunar (~29.5 días) oculta el Sol tras el cráter y comienza la noche polar."}
       </div>
 
-      {/* AI / System Recommendation Callout */}
       {opt && (
         <div className="mt-2.5 rounded border border-neutral-700 bg-[#111111] p-2.5">
           <div className="text-[9px] font-bold tracking-[0.12em] text-amber-300">
@@ -342,7 +338,6 @@ export default function OperationalAlert() {
             </div>
           </div>
 
-          {/* Simple Sun & Earth Contact Rows with Real Photos */}
           <div className="mt-3 space-y-2 rounded border border-neutral-800/90 bg-[#121212] p-2.5">
             <div className="flex items-center justify-between text-[11px]">
               <span className="font-medium text-neutral-300">

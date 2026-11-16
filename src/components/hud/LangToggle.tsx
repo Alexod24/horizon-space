@@ -1,76 +1,58 @@
 "use client";
 
-import { useEffect } from "react";
 import { useMissionStore } from "@/store/useMissionStore";
+
+function SpainFlag() {
+  return (
+    <svg viewBox="0 0 24 16" className="h-3 w-4 shrink-0 rounded-[2px]" aria-hidden="true">
+      <rect width="24" height="16" fill="#AA151B" />
+      <rect y="4" width="24" height="8" fill="#F1BF00" />
+    </svg>
+  );
+}
+
+function UsFlag() {
+  return (
+    <svg viewBox="0 0 24 16" className="h-3 w-4 shrink-0 rounded-[2px]" aria-hidden="true">
+      <rect width="24" height="16" fill="#B22234" />
+      <path d="M0 2.3h24M0 5h24M0 7.7h24M0 10.4h24M0 13.1h24" stroke="#FFFFFF" strokeWidth="1.2" />
+      <rect width="10" height="8.6" fill="#3C3B6E" />
+    </svg>
+  );
+}
 
 export default function LangToggle() {
   const lang = useMissionStore((s) => s.lang);
   const setLang = useMissionStore((s) => s.setLang);
-  const theme = useMissionStore((s) => s.theme);
-  const setTheme = useMissionStore((s) => s.setTheme);
-  const enteredApp = useMissionStore((s) => s.enteredApp);
-  const en = lang === "en";
-  const isLight = theme === "light";
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = enteredApp ? theme : "dark";
-  }, [theme, enteredApp]);
 
   return (
-    <div className="flex items-center gap-2">
-      {enteredApp && (
-        <button
-          type="button"
-          onClick={() => setTheme(isLight ? "dark" : "light")}
-          title={
-            isLight
-              ? en
-                ? "Switch to Dark Mode"
-                : "Cambiar a Modo Oscuro"
-              : en
-                ? "Switch to Light Mode"
-                : "Cambiar a Modo Claro"
-          }
-          aria-label={en ? "Toggle theme" : "Cambiar tema"}
-          className="flex items-center gap-1.5 rounded-full border border-neutral-700 bg-neutral-900/90 px-2.5 py-1 text-[10px] font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
-        >
-          <span aria-hidden="true">{isLight ? "🌙" : "☀"}</span>
-          <span className="hidden sm:inline">
-            {isLight
-              ? en
-                ? "Dark"
-                : "Oscuro"
-              : en
-                ? "Light"
-                : "Claro"}
-          </span>
-        </button>
-      )}
-
-      <div
-        role="group"
-        aria-label="Language selector"
-        className="flex items-center overflow-hidden rounded-full border border-neutral-700 bg-neutral-900/90 text-[10px] font-semibold"
+    <div
+      role="group"
+      aria-label="Language selector"
+      className="flex items-center overflow-hidden rounded-full border border-neutral-700 bg-neutral-900/90 text-[10px] font-semibold"
+    >
+      <button
+        type="button"
+        onClick={() => setLang("es")}
+        title="Español"
+        className={`flex items-center gap-1 px-2 py-1 transition ${
+          lang === "es" ? "bg-white text-black" : "text-neutral-400 hover:text-white"
+        }`}
       >
-        <button
-          type="button"
-          onClick={() => setLang("es")}
-          className={`px-2 py-1 transition ${
-            lang === "es" ? "bg-white text-black" : "text-neutral-400 hover:text-white"
-          }`}
-        >
-          ES
-        </button>
-        <button
-          type="button"
-          onClick={() => setLang("en")}
-          className={`px-2 py-1 transition ${
-            lang === "en" ? "bg-white text-black" : "text-neutral-400 hover:text-white"
-          }`}
-        >
-          EN
-        </button>
-      </div>
+        <SpainFlag />
+        <span>ES</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => setLang("en")}
+        title="English"
+        className={`flex items-center gap-1 px-2 py-1 transition ${
+          lang === "en" ? "bg-white text-black" : "text-neutral-400 hover:text-white"
+        }`}
+      >
+        <UsFlag />
+        <span>EN</span>
+      </button>
     </div>
   );
 }

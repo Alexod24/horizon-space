@@ -69,7 +69,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-dvh scroll-smooth bg-[#0a0a0a] text-neutral-100 lg:h-dvh lg:overflow-y-auto">
-      {/* Top Navbar */}
       <header className="sticky top-0 z-30 border-b border-neutral-900 bg-[#0a0a0a]/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 text-xs sm:px-6">
           <div className="flex items-center gap-2.5">
@@ -103,8 +102,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* SECTION 1: HERO */}
-      <section className="relative overflow-hidden border-b border-neutral-900">
+      <section className="relative flex min-h-[calc(100dvh-3.5rem)] items-center overflow-hidden border-b border-neutral-900">
         <div className="pointer-events-none absolute inset-0">
           <img
             src="/hero-moon.jpg"
@@ -115,7 +113,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/50" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-6xl px-6 pb-16 pt-16 sm:pt-24">
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-20 sm:py-28">
           <div className="max-w-xl">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/60 px-3 py-1 font-mono text-[10px] tracking-[0.2em] text-neutral-300 backdrop-blur-sm">
               {en ? "NASA SPACE APPS CHALLENGE · LUNAR SOUTH POLE" : "NASA SPACE APPS CHALLENGE · POLO SUR DE LA LUNA"}
@@ -157,10 +155,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SECTION 2: EL RETO EXPLICADO SIMPLE */}
       <section id="reto" className="relative overflow-hidden border-b border-neutral-900 bg-[#080808] py-20">
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 md:grid-cols-2">
-          {/* Left Floating Visual */}
           <div className="relative flex h-72 items-center justify-center">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0.02)_40%,transparent_70%)]" />
 
@@ -171,7 +167,6 @@ export default function LandingPage() {
             />
           </div>
 
-          {/* Right Narrative */}
           <div>
             <div className="flex items-center gap-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
               <span className="font-mono text-neutral-500">&rsaquo;</span>
@@ -208,7 +203,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SECTION 3: ACCESIBILIDAD PARA TODOS LOS NIVELES */}
       <section id="niveles" className="border-b border-neutral-900 bg-[#0a0a0a] py-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="max-w-2xl">
@@ -244,7 +238,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SECTION 4: 4 PASOS SIMPLES */}
       <section id="solucion" className="border-b border-neutral-900 bg-[#080808] py-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="flex items-center gap-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
@@ -264,7 +257,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer className="bg-[#050505] py-12">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-8 px-6 text-xs text-neutral-500 md:flex-row">
           <div className="flex items-center gap-3">

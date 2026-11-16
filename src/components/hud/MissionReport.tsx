@@ -84,7 +84,6 @@ export function MissionReportCard() {
       id="mission-report-card"
       className={`rounded-md border-2 p-3 text-xs shadow-lg transition-all ${statusConfig.borderClass}`}
     >
-      {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="flex items-center gap-1.5">
@@ -107,7 +106,6 @@ export function MissionReportCard() {
         </button>
       </div>
 
-      {/* Score & Verdict */}
       <div className="mt-2.5 flex items-center justify-between rounded border border-neutral-800 bg-[#121212] px-2.5 py-2">
         <div>
           <span
@@ -129,7 +127,6 @@ export function MissionReportCard() {
         </div>
       </div>
 
-      {/* Key 7-Day Metrics Summary */}
       <div className="mt-2.5 space-y-1.5 rounded border border-neutral-800/90 bg-[#121212] p-2.5 text-[11px]">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-neutral-300">
@@ -198,7 +195,6 @@ export function MissionReportCard() {
         )}
       </div>
 
-      {/* Action Button to Open Full Detailed Report */}
       <button
         type="button"
         onClick={() => setReportModalOpen(true)}
@@ -289,7 +285,6 @@ export function MissionReportModal() {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
     >
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-neutral-700 bg-[#141414] p-5 text-xs text-neutral-100 shadow-2xl">
-        {/* Header */}
         <div className="flex items-start justify-between gap-4 border-b border-neutral-800 pb-3">
           <div>
             <div className="font-mono text-[10px] font-bold tracking-[0.16em] text-emerald-400">
@@ -317,7 +312,6 @@ export function MissionReportModal() {
           </button>
         </div>
 
-        {/* Top 3 Summary KPIs */}
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
             <div className="text-[10px] font-semibold tracking-wider text-neutral-400">
@@ -378,7 +372,6 @@ export function MissionReportModal() {
           </div>
         </div>
 
-        {/* Mission Configuration Parameters */}
         <div className="mt-4 rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
           <div className="mb-2 text-[10px] font-semibold tracking-[0.12em] text-neutral-400">
             {en ? "MISSION PARAMETERS" : "PARÁMETROS DE LA MISIÓN SIMULADA"}
@@ -417,7 +410,6 @@ export function MissionReportModal() {
           </div>
         </div>
 
-        {/* Day-by-Day Breakdown (Day 1 to Day 7) */}
         <div className="mt-4 rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
           <div className="mb-2 text-[10px] font-semibold tracking-[0.12em] text-neutral-400">
             {en
@@ -447,7 +439,6 @@ export function MissionReportModal() {
           </div>
         </div>
 
-        {/* Educational Conclusion */}
         <div className="mt-4 rounded-md border border-neutral-800 bg-[#121212] p-3 text-[11px] leading-relaxed text-neutral-300">
           <strong className="text-white">
             {en ? "Why does the guaranteed window last 7 days? " : "¿Por qué la ventana asegurada dura 7 días? "}
@@ -457,7 +448,6 @@ export function MissionReportModal() {
             : "En el Polo Sur Lunar, el Sol roza el horizonte a menos de 1.5° de elevación durante un ciclo sinódico de ~29.5 días. Aterrizar al inicio de una ventana óptima garantiza 168 horas de energía solar y enlace con la Tierra antes de que las crestas del cráter Shackleton proyecten sombras polares que superarían las baterías del módulo."}
         </div>
 
-        {/* Footer Actions */}
         <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-neutral-800 pt-3">
           <button
             type="button"

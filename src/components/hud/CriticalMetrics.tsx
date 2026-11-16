@@ -48,7 +48,6 @@ export function CompactMetricsCard({
   if (!advancedHud) {
     return (
       <div className="shrink-0 rounded-md border border-neutral-800 bg-[#161616] p-2.5 text-xs">
-        {/* Top Viability Header */}
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span
@@ -89,9 +88,7 @@ export function CompactMetricsCard({
           </span>
         </div>
 
-        {/* Two Visual Boxes: Real Sun Image + Check & Real Earth Image + Check */}
         <div className={stacked ? "grid grid-cols-1 gap-2" : "grid grid-cols-1 gap-2 sm:grid-cols-2"}>
-          {/* Sun Box */}
           <div
             className={`flex items-center justify-between gap-2 rounded-md border p-2 ${
               sunOk
@@ -125,7 +122,6 @@ export function CompactMetricsCard({
             </span>
           </div>
 
-          {/* Earth Box */}
           <div
             className={`flex items-center justify-between gap-2 rounded-md border p-2 ${
               earthOk
@@ -247,7 +243,6 @@ export function DetailedMetricsCards({ offsetHours }: { offsetHours: number }) {
 
   return (
     <div className="space-y-3">
-      {/* Solar Card */}
       <div className="rounded-md border border-neutral-800 bg-[#161616] p-3 text-xs">
         <div className="text-[10px] font-semibold tracking-[0.14em] text-neutral-400">
           {en ? "CRITICAL METRICS" : "MÉTRICAS CRÍTICAS"}
@@ -284,7 +279,6 @@ export function DetailedMetricsCards({ offsetHours }: { offsetHours: number }) {
         </div>
       </div>
 
-      {/* Comms Card */}
       <div className="rounded-md border border-neutral-800 bg-[#161616] p-3 text-xs">
         <div className="text-[10px] font-bold tracking-[0.14em] text-neutral-200">
           {en ? "COMMUNICATIONS" : "COMUNICACIONES"}

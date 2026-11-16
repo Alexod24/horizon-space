@@ -4,7 +4,6 @@ import LangToggle from "@/components/hud/LangToggle";
 import { useMissionStore } from "@/store/useMissionStore";
 
 export default function MissionHeader() {
-  const terrainSource = useMissionStore((s) => s.data?.terrainSource);
   const missionStarted = useMissionStore((s) => s.missionStarted);
   const plannedLaunchMs = useMissionStore((s) => s.plannedLaunchMs);
   const setEnteredApp = useMissionStore((s) => s.setEnteredApp);
@@ -71,18 +70,6 @@ export default function MissionHeader() {
           >
             {en ? "Configure Mission" : "Configurar Misión"}
           </button>
-        )}
-        {terrainSource && (
-          <span
-            className="hidden rounded border border-neutral-800 bg-neutral-900 px-2 py-0.5 font-mono text-[10px] text-neutral-300 sm:inline"
-            title={
-              terrainSource === "lola"
-                ? en ? "Real LOLA elevation loaded" : "Elevación real LOLA cargada"
-                : en ? "Using placeholder relief until LOLA DEM is processed" : "Usando relieve sintético hasta procesar LOLA DEM"
-            }
-          >
-            {terrainSource === "lola" ? "LOLA DEM" : en ? "PLACEHOLDER RELIEF" : "RELIEVE PROVISIONAL"}
-          </span>
         )}
         <span className="hidden font-mono text-[11px] text-neutral-500 sm:inline">
           Space Apps <strong className="text-neutral-200">2026</strong>

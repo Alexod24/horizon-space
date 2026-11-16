@@ -133,7 +133,6 @@ export default function TimelineBar() {
   return (
     <div className="z-20 shrink-0">
       <div className="flex flex-wrap items-center gap-3 border-b border-neutral-800 bg-[#161616] px-4 py-2 text-xs">
-      {/* Play + Speed */}
       <div className="flex items-center gap-1.5">
         <button
           onClick={togglePlay}
@@ -160,7 +159,6 @@ export default function TimelineBar() {
         )}
       </div>
 
-      {/* Compact Launch Date (T-0) + Transit Profile Selectors (Advanced mode) */}
       {advancedHud && (
         <div className="hidden items-center gap-2 xl:flex">
           <label className="flex items-center gap-1.5 rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-[10px]">
@@ -201,7 +199,6 @@ export default function TimelineBar() {
         </div>
       )}
 
-      {/* Center Slider + Launch -> Touchdown Date */}
       <div className="flex min-w-[240px] flex-1 flex-col items-center">
         <div className="mb-0.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] text-neutral-400">
           <span>
@@ -242,7 +239,6 @@ export default function TimelineBar() {
             className="horizon-range relative z-10 w-full"
             style={{ ["--pct" as string]: `${pct}%` }}
           />
-          {/* +48h crisis marker */}
           {delayHours > 0 && (
             <div
               className="pointer-events-none absolute top-1/2 z-20 -translate-x-1/2 -translate-y-1/2"
@@ -257,7 +253,6 @@ export default function TimelineBar() {
         </div>
       </div>
 
-      {/* Right actions: Terrain filter + Isolate Pole + Jump to crisis + Compare toggle + Advanced toggle */}
       <div className="flex items-center gap-2">
         {advancedHud && (
           <>
@@ -337,7 +332,6 @@ export default function TimelineBar() {
       </div>
       </div>
 
-      {/* 7-Day Guaranteed Mission Completed Alert */}
       {sevenDayAlertOpen && (
         <div
           role="alert"

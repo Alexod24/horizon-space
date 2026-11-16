@@ -83,7 +83,6 @@ export default function MissionSetupPanel() {
           </p>
         </div>
 
-        {/* 1. Landing Site */}
         <div className="rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-semibold tracking-[0.12em] text-neutral-300">
@@ -117,7 +116,6 @@ export default function MissionSetupPanel() {
           </div>
         </div>
 
-        {/* 2. Launch Date & Transit Profile */}
         <div className="rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
           <div className="flex items-center justify-between">
             <label htmlFor="launch-dt" className="block text-[10px] font-semibold tracking-[0.12em] text-neutral-300">
@@ -195,7 +193,6 @@ export default function MissionSetupPanel() {
           </button>
         </div>
 
-        {/* 3. Vehicle Selector */}
         <div className="rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[10px] font-semibold tracking-[0.12em] text-neutral-300">
@@ -255,7 +252,6 @@ export default function MissionSetupPanel() {
           </div>
         </div>
 
-        {/* 4. Delay */}
         <div className="rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
           <div className="text-[10px] font-semibold tracking-[0.12em] text-neutral-300">
             {en ? "4. DELAY TO SIMULATE" : "4. RETRASO A SIMULAR"}
@@ -277,7 +273,6 @@ export default function MissionSetupPanel() {
           </div>
         </div>
 
-        {/* 5. Mission Viability Verdict & AI Recommendation */}
         <ViabilityVerdictCard />
       </div>
 

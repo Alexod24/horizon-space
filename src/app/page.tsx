@@ -75,7 +75,6 @@ function ViewportCard({
     <div ref={cardRef} className="viewport-3d-dark relative min-h-[300px] flex-1 overflow-hidden rounded-md border border-neutral-800 bg-[#0a0a0a] sm:min-h-[360px] lg:min-h-0">
       <HorizonScene offsetHours={offsetHours} ghostOffsetHours={ghostOffsetHours} />
 
-      {/* Top overlay bar (responsive wrap so label and buttons never collide on mobile) */}
       <div className="pointer-events-none absolute left-2.5 right-2.5 top-2.5 z-10 flex flex-wrap items-start justify-between gap-2 sm:left-3 sm:right-3 sm:top-3">
         <div className="max-w-full rounded border border-neutral-800 bg-[#141414]/85 px-2.5 py-1.5 backdrop-blur-sm">
           <div className="text-[10px] font-semibold tracking-wide text-neutral-100 sm:text-[11px]">{title}</div>
@@ -167,7 +166,6 @@ function ViewportCard({
         </div>
       </div>
 
-      {/* Out-of-bounds UX alert when clicking outside the 15 km South Pole dome */}
       {outOfBoundsKm !== null && (
         <div className="absolute right-12 top-3 z-20 flex max-w-xs items-start gap-2 rounded border border-neutral-700 bg-[#191919]/95 px-3 py-2 text-[11px] text-neutral-100 shadow-lg backdrop-blur-sm">
           <div className="flex-1">
@@ -192,7 +190,6 @@ function ViewportCard({
         </div>
       )}
 
-      {/* Educational landmark popover in Phase 1 only (in Phase 2 it renders in the right operational column) */}
       {!missionStarted && selectedLandmark && (
         <div className="absolute bottom-9 left-3 z-20 w-72 max-w-[calc(100%-1.5rem)] rounded-md border border-neutral-700 bg-[#141414]/95 p-3 text-xs text-neutral-100 shadow-2xl backdrop-blur-md">
           <div className="flex items-start justify-between gap-2">
@@ -228,7 +225,6 @@ function ViewportCard({
         </div>
       )}
 
-      {/* Bottom bar (shown in Phase 1 or when Advanced Options are active) */}
       {(!missionStarted || advancedHud) && (
         <div className="pointer-events-none absolute bottom-2.5 left-3 right-3 z-10 flex items-center justify-between text-[10px] text-neutral-500">
           <span className="font-mono">COORDS: {coords}</span>
@@ -350,7 +346,6 @@ export default function Home() {
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
           <SiteSidebar />
 
-          {/* Center workspace */}
           <div className="flex min-h-0 flex-1 flex-col gap-3 p-2.5 sm:p-3 lg:flex-row">
             {compare ? (
               <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
@@ -396,13 +391,11 @@ export default function Home() {
               />
             )}
 
-            {/* Right operational column */}
             <aside className="flex w-full shrink-0 flex-col gap-3 lg:w-64 lg:overflow-y-auto">
               <MissionReportCard />
               {!compare && <DetailedMetricsCards offsetHours={0} />}
               <OperationalAlert />
 
-              {/* Shared 3D View Controls (moved out of viewports in Phase 2) */}
               <div className="rounded-md border border-neutral-800 bg-[#161616] p-3 text-xs">
                 <div className="mb-2.5 text-[10px] font-semibold tracking-[0.14em] text-neutral-400">
                   {en ? "VIEW CONTROLS" : "CONTROLES DE VISTA"}

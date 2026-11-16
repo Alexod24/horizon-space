@@ -23,7 +23,6 @@ interface CameraSyncMsg {
 const cameraSyncListeners = new Set<(msg: CameraSyncMsg) => void>();
 let lastSyncedCamera: CameraSyncMsg | null = null;
 
-// ─── Terrain ────────────────────────────────────────────────────────────────
 function buildTerrainGeometry(t: TerrainMatrix, minKm = 0, maxKm = TERRAIN_RADIUS, rings = 110, segs = 240) {
   const pos: number[] = [];
   const uv: number[] = [];
@@ -47,7 +46,6 @@ function buildTerrainGeometry(t: TerrainMatrix, minKm = 0, maxKm = TERRAIN_RADIU
       pos.push(x / 1000, (h / 1000) * VERT_EXAG, -y / 1000);
       uv.push((x / 1000 + TERRAIN_RADIUS) / (TERRAIN_RADIUS * 2), (-y / 1000 + TERRAIN_RADIUS) / (TERRAIN_RADIUS * 2));
 
-      // Subtle hypsometric shading for tactical mode
       const u = THREE.MathUtils.clamp((h + 4500) / 6500, 0, 1);
       if (u < 0.5) tmp.copy(lo).lerp(mid, u * 2);
       else tmp.copy(mid).lerp(hi, (u - 0.5) * 2);
@@ -84,7 +82,6 @@ function Terrain({ terrain, contextTerrain }: { terrain: TerrainMatrix; contextT
 
   return (
     <group>
-      {/* Active 15 km South Pole landing zone: click to place landing site */}
       <mesh
         geometry={innerGeo}
         receiveShadow
@@ -107,7 +104,6 @@ function Terrain({ terrain, contextTerrain }: { terrain: TerrainMatrix; contextT
         </mesh>
       )}
 
-      {/* Surrounding lunar terrain (15 km -> 76 km) hidden when isolatePole is active */}
       {outerGeo && !isolatePole && (
         <mesh
           geometry={outerGeo}
@@ -129,7 +125,6 @@ function Terrain({ terrain, contextTerrain }: { terrain: TerrainMatrix; contextT
   );
 }
 
-// ─── Sky ────────────────────────────────────────────────────────────────────
 function ringPoints(elDeg: number, n = 180) {
   return Array.from({ length: n + 1 }, (_, i) => skyPoint((i / n) * 360, elDeg));
 }
@@ -288,12 +283,10 @@ function CelestialBody({
         </mesh>
       ) : kind === "sun" ? (
         <group position={p}>
-          {/* Blinding white-hot solar photosphere */}
           <mesh ref={meshRef}>
             <sphereGeometry args={[0.42, 28, 28]} />
             <meshBasicMaterial map={sunMap} color={blocked ? "#ffd2c2" : "#fffcf0"} />
           </mesh>
-          {/* Smooth billboarded corona + diffraction spikes */}
           <sprite scale={[3.8, 3.8, 1]}>
             <spriteMaterial
               map={sunCoronaMap}
@@ -316,7 +309,6 @@ function CelestialBody({
               roughness={0.65}
             />
           </mesh>
-          {/* Atmospheric Fresnel-like rim */}
           <mesh>
             <sphereGeometry args={[0.62, 24, 24]} />
             <meshBasicMaterial
@@ -456,7 +448,6 @@ function CameraGuard({
   const centerTrigger = useMissionStore((s) => s.centerTrigger);
   const prevTrigger = useRef(centerTrigger);
 
-  // Sync camera pose from other viewports (Compare Mode)
   useEffect(() => {
     const onSync = (msg: CameraSyncMsg) => {
       if (msg.sourceId === syncId) return;
@@ -527,7 +518,6 @@ function CameraGuard({
       ctrl.target.add(delta);
     }
 
-    // Clamp target within the South Pole boundary so the user never loses the site
     const maxPan = isolatePole ? 15 : 28;
     const r = Math.hypot(ctrl.target.x, ctrl.target.z);
     let clamped = false;
