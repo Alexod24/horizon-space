@@ -140,7 +140,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   delayHours: 0,
   compare: true,
   terrainMode: "realistic",
-  terrainBrightness: 1,
+  terrainBrightness: 2.8,
   lang: "es",
   theme: "dark",
   isolatePole: true,

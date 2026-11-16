@@ -44,18 +44,6 @@ export default function MissionHeader() {
         </span>
       </div>
 
-      <div className="hidden text-[11px] font-medium text-neutral-400 md:block">
-        {en ? (
-          <>
-            <span className="text-white">&ldquo;What-If&rdquo;</span> Mode · Delay Simulation
-          </>
-        ) : (
-          <>
-            Modo <span className="text-white">&ldquo;What-If&rdquo;</span> · Simulación de Retraso
-          </>
-        )}
-      </div>
-
       <div className="flex items-center gap-2.5">
         <LangToggle />
         {missionStarted && (

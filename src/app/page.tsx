@@ -93,7 +93,8 @@ function ViewportCard({
               </span>
             </span>
           </div>
-          {(!missionStarted || advancedHud) && (
+
+      {(!missionStarted || advancedHud) && (
             <div className="font-mono text-[9px] text-neutral-500 sm:text-[10px]">
               COORDS: {coords} · {en ? "DOME" : "CÚPULA"} R = 15 KM
             </div>
@@ -224,6 +225,55 @@ function ViewportCard({
           </div>
         </div>
       )}
+
+      {/* Interactive arrow-key pan hint (↑ ↓ ← →) */}
+      <div
+        title={en ? "Use arrow keys (↑↓←→) or click to pan the map" : "Usa las flechas (↑↓←→) o haz clic para moverte por el mapa"}
+        className="absolute bottom-8 right-3 z-10 flex flex-col items-center gap-0.5 select-none"
+      >
+        <button
+          type="button"
+          aria-label={en ? "Pan up" : "Mover arriba"}
+          onPointerDown={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp" }))}
+          onPointerUp={() => window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowUp" }))}
+          onPointerLeave={() => window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowUp" }))}
+          className="flex h-6 w-6 items-center justify-center rounded border border-neutral-700/90 bg-[#141414]/85 text-[10px] text-neutral-300 backdrop-blur-sm transition hover:border-white hover:text-white active:bg-white active:text-black"
+        >
+          ↑
+        </button>
+        <div className="flex items-center gap-0.5">
+          <button
+            type="button"
+            aria-label={en ? "Pan left" : "Mover izquierda"}
+            onPointerDown={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft" }))}
+            onPointerUp={() => window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowLeft" }))}
+            onPointerLeave={() => window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowLeft" }))}
+            className="flex h-6 w-6 items-center justify-center rounded border border-neutral-700/90 bg-[#141414]/85 text-[10px] text-neutral-300 backdrop-blur-sm transition hover:border-white hover:text-white active:bg-white active:text-black"
+          >
+            ←
+          </button>
+          <button
+            type="button"
+            aria-label={en ? "Pan down" : "Mover abajo"}
+            onPointerDown={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }))}
+            onPointerUp={() => window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowDown" }))}
+            onPointerLeave={() => window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowDown" }))}
+            className="flex h-6 w-6 items-center justify-center rounded border border-neutral-700/90 bg-[#141414]/85 text-[10px] text-neutral-300 backdrop-blur-sm transition hover:border-white hover:text-white active:bg-white active:text-black"
+          >
+            ↓
+          </button>
+          <button
+            type="button"
+            aria-label={en ? "Pan right" : "Mover derecha"}
+            onPointerDown={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }))}
+            onPointerUp={() => window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowRight" }))}
+            onPointerLeave={() => window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowRight" }))}
+            className="flex h-6 w-6 items-center justify-center rounded border border-neutral-700/90 bg-[#141414]/85 text-[10px] text-neutral-300 backdrop-blur-sm transition hover:border-white hover:text-white active:bg-white active:text-black"
+          >
+            →
+          </button>
+        </div>
+      </div>
 
       {(!missionStarted || advancedHud) && (
         <div className="pointer-events-none absolute bottom-2.5 left-3 right-3 z-10 flex items-center justify-between text-[10px] text-neutral-500">

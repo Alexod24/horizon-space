@@ -72,6 +72,7 @@ function Terrain({ terrain, contextTerrain }: { terrain: TerrainMatrix; contextT
   const setLandingSite = useMissionStore((s) => s.setLandingSite);
   const terrainMode = useMissionStore((s) => s.terrainMode);
   const isolatePole = useMissionStore((s) => s.isolatePole);
+  const missionStarted = useMissionStore((s) => s.missionStarted);
   const realistic = terrainMode === "realistic";
   const moonMap = useMemo(() => getMoonRegolithTexture(), []);
   const innerGeo = useMemo(() => buildTerrainGeometry(terrain, 0, TERRAIN_RADIUS, 110, 240), [terrain]);
@@ -87,7 +88,7 @@ function Terrain({ terrain, contextTerrain }: { terrain: TerrainMatrix; contextT
         receiveShadow
         castShadow
         onClick={(e) => {
-          if (e.delta > 4) return; // ignore orbit/pan drags
+          if (missionStarted || e.delta > 4) return;
           e.stopPropagation();
           setLandingSite(e.point.x, -e.point.z);
         }}
@@ -109,6 +110,7 @@ function Terrain({ terrain, contextTerrain }: { terrain: TerrainMatrix; contextT
           geometry={outerGeo}
           receiveShadow
           onClick={(e) => {
+            if (missionStarted || e.delta > 4) return;
             e.stopPropagation();
             const km = Math.hypot(e.point.x, e.point.z);
             setOutOfBoundsKm(km > TERRAIN_RADIUS ? Math.round(km * 10) / 10 : null);
@@ -407,19 +409,98 @@ function LandmarkPins({ terrain }: { terrain: TerrainMatrix }) {
 
 function SiteMarker() {
   const lang = useMissionStore((s) => s.lang);
+  const vehicleId = useMissionStore((s) => s.vehicleId);
+  const isRover = vehicleId === "viper" || vehicleId === "artemis-ltv";
+  const isTallLander = vehicleId === "nova-c";
+
   return (
     <group>
-      <Line points={[new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0.8, 0)]} color="#ffffff" lineWidth={1.5} />
-      <mesh position={[0, 0.8, 0]}>
-        <sphereGeometry args={[0.12, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" />
-      </mesh>
+      {/* Ground target ring */}
       <mesh rotation-x={-Math.PI / 2} position-y={0.03}>
-        <ringGeometry args={[0.35, 0.45, 48]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.8} side={THREE.DoubleSide} />
+        <ringGeometry args={[0.42, 0.5, 48]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.75} side={THREE.DoubleSide} />
       </mesh>
-      <Billboard position={[0, 1.15, 0]}>
-        <Text fontSize={0.36} color="#ffffff" anchorX="center" anchorY="bottom" outlineWidth={0.03} outlineColor="#000000">
+
+      {isRover ? (
+        <group>
+          {/* Rover chassis */}
+          <mesh position={[0, 0.2, 0]} castShadow>
+            <boxGeometry args={[0.38, 0.14, 0.48]} />
+            <meshStandardMaterial color="#e5e7eb" metalness={0.5} roughness={0.35} />
+          </mesh>
+          {/* Gold thermal deck */}
+          <mesh position={[0, 0.28, -0.04]} castShadow>
+            <boxGeometry args={[0.32, 0.04, 0.34]} />
+            <meshStandardMaterial color="#d4a038" metalness={0.7} roughness={0.3} />
+          </mesh>
+          {/* 4 wheels */}
+          {([-0.22, 0.22] as const).map((wx) =>
+            ([-0.18, 0.18] as const).map((wz) => (
+              <mesh key={`${wx}_${wz}`} position={[wx, 0.09, wz]} rotation-z={Math.PI / 2} castShadow>
+                <cylinderGeometry args={[0.09, 0.09, 0.07, 16]} />
+                <meshStandardMaterial color="#27272a" roughness={0.85} metalness={0.2} />
+              </mesh>
+            )),
+          )}
+          {/* Sensor mast & camera head */}
+          <mesh position={[0, 0.44, 0.15]} castShadow>
+            <cylinderGeometry args={[0.02, 0.025, 0.34, 8]} />
+            <meshStandardMaterial color="#d4d4d8" metalness={0.6} roughness={0.3} />
+          </mesh>
+          <mesh position={[0, 0.62, 0.15]} castShadow>
+            <boxGeometry args={[0.14, 0.07, 0.08]} />
+            <meshStandardMaterial color="#f4f4f5" metalness={0.4} roughness={0.3} />
+          </mesh>
+          {/* Solar wing */}
+          <mesh position={[0, 0.32, -0.14]} rotation-x={-0.35} castShadow>
+            <boxGeometry args={[0.52, 0.02, 0.22]} />
+            <meshStandardMaterial color="#1e3a5f" metalness={0.7} roughness={0.2} />
+          </mesh>
+        </group>
+      ) : (
+        <group scale={isTallLander ? [1, 1.35, 1] : [1, 1, 1]}>
+          {/* 4 landing legs + footpads */}
+          {([0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2] as const).map((ang, i) => (
+            <group key={i} rotation-y={ang}>
+              <mesh position={[0.21, 0.14, 0]} rotation-z={0.55} castShadow>
+                <cylinderGeometry args={[0.018, 0.018, 0.34, 8]} />
+                <meshStandardMaterial color="#d4d4d8" metalness={0.7} roughness={0.3} />
+              </mesh>
+              <mesh position={[0.31, 0.02, 0]}>
+                <cylinderGeometry args={[0.06, 0.07, 0.025, 12]} />
+                <meshStandardMaterial color="#a1a1aa" metalness={0.6} roughness={0.4} />
+              </mesh>
+            </group>
+          ))}
+          {/* Gold Kapton descent body */}
+          <mesh position={[0, 0.34, 0]} castShadow>
+            <cylinderGeometry args={[0.18, 0.2, 0.28, 8]} />
+            <meshStandardMaterial color="#d4a038" metalness={0.75} roughness={0.28} />
+          </mesh>
+          {/* Upper avionics / thermal module */}
+          <mesh position={[0, 0.54, 0]} castShadow>
+            <cylinderGeometry args={[0.14, 0.16, 0.14, 8]} />
+            <meshStandardMaterial color="#e5e7eb" metalness={0.5} roughness={0.35} />
+          </mesh>
+          {/* Side solar panels */}
+          <mesh position={[0.25, 0.42, 0]} rotation-z={0.18} castShadow>
+            <boxGeometry args={[0.02, 0.26, 0.22]} />
+            <meshStandardMaterial color="#1e3a5f" metalness={0.7} roughness={0.2} />
+          </mesh>
+          <mesh position={[-0.25, 0.42, 0]} rotation-z={-0.18} castShadow>
+            <boxGeometry args={[0.02, 0.26, 0.22]} />
+            <meshStandardMaterial color="#1e3a5f" metalness={0.7} roughness={0.2} />
+          </mesh>
+          {/* High-gain dish antenna */}
+          <mesh position={[0, 0.68, 0]}>
+            <cylinderGeometry args={[0.09, 0.02, 0.05, 16]} />
+            <meshStandardMaterial color="#ffffff" metalness={0.5} roughness={0.3} />
+          </mesh>
+        </group>
+      )}
+
+      <Billboard position={[0, isTallLander ? 1.25 : 1.05, 0]}>
+        <Text fontSize={0.34} color="#ffffff" anchorX="center" anchorY="bottom" outlineWidth={0.03} outlineColor="#000000">
           {lang === "en" ? "LANDING SITE" : "SITIO DE ATERRIZAJE"}
         </Text>
       </Billboard>

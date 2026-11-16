@@ -1,7 +1,6 @@
 "use client";
 
 import { ViabilityVerdictCard } from "@/components/hud/OperationalAlert";
-import { findNextCrisis, indexAt } from "@/lib/engine/timeline";
 import { formatDate, formatShortDay } from "@/lib/scene";
 import { DEFAULT_VEHICLE, VEHICLES } from "@/lib/vehicles";
 import { TRANSIT_PROFILES, useMissionStore } from "@/store/useMissionStore";
@@ -42,7 +41,7 @@ export default function MissionSetupPanel() {
 
   if (!data) return null;
 
-  const { t0Ms, t1Ms, stepMs } = data.timeline;
+  const { t0Ms, t1Ms } = data.timeline;
   const transitMs = transitDays * DAY_MS;
   const delayMs = delayHours * HOUR_MS;
   const minStr = toDatetimeLocalUTC(t0Ms);
@@ -51,20 +50,6 @@ export default function MissionSetupPanel() {
   const nominalTouchdownMs = timeMs + transitMs;
   const delayedLaunchMs = timeMs + delayMs;
   const delayedTouchdownMs = nominalTouchdownMs + delayMs;
-
-  const suggestCrisis = () => {
-    const activeDelayH = delayHours === 0 ? 48 : delayHours;
-    if (delayHours === 0) setDelay(48);
-    const minTouchdownIdx = Math.ceil(transitMs / stepMs);
-    const currentTouchdownIdx = Math.max(
-      minTouchdownIdx,
-      indexAt(data.timeline, nominalTouchdownMs) + 1,
-    );
-    const delaySteps = Math.round((activeDelayH * HOUR_MS) / stepMs);
-    let hit = findNextCrisis(data.vis, currentTouchdownIdx, delaySteps);
-    if (hit < 0) hit = findNextCrisis(data.vis, minTouchdownIdx, delaySteps);
-    if (hit >= 0) setTime(t0Ms + hit * stepMs - transitMs);
-  };
 
   return (
     <aside className="z-20 flex w-full shrink-0 flex-col justify-between gap-4 border-t border-neutral-800 bg-[#141414] p-4 text-xs lg:w-80 lg:overflow-y-auto lg:border-l lg:border-t-0">
@@ -183,14 +168,6 @@ export default function MissionSetupPanel() {
               {en ? "Lunar touchdown:" : "Alunizaje nominal:"} {formatDate(nominalTouchdownMs, lang)}
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={suggestCrisis}
-            className="mt-2 w-full rounded border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-[10px] font-medium text-neutral-200 transition hover:border-neutral-500 hover:bg-neutral-800"
-          >
-            {en ? "Find launch date with delay crisis" : "Buscar lanzamiento con crisis de retraso"}
-          </button>
         </div>
 
         <div className="rounded-md border border-neutral-800 bg-[#1a1a1a] p-3">
